@@ -1,0 +1,22 @@
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets/
+
+# Runtime data
+data/
+tmp/
+dist/
+bin/
+coverage/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
