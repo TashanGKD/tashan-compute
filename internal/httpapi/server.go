@@ -6,7 +6,9 @@ import (
 )
 
 type ServerOptions struct {
-	Version string
+	Version       string
+	Authenticator Authenticator
+	AdminUsers    AdminUserCreator
 }
 
 func NewServer(options ServerOptions) http.Handler {
@@ -18,5 +20,6 @@ func NewServer(options ServerOptions) http.Handler {
 			Version string `json:"version"`
 		}{Status: "ok", Version: options.Version})
 	})
+	mux.HandleFunc("POST /v1/admin/users", adminUserCreateHandler(options.Authenticator, options.AdminUsers))
 	return mux
 }
