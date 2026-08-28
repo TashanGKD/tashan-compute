@@ -59,7 +59,7 @@ tests/distribution/                fresh-user install and secret-leak tests
 - Create: `internal/buildinfo/version.go`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Write the failing no-argument safety test**
+- [x] **Step 1: Write the failing no-argument safety test**
 
 ```go
 func TestRootWithoutArgumentsOnlyPrintsHelp(t *testing.T) {
@@ -79,13 +79,13 @@ func TestRootWithoutArgumentsOnlyPrintsHelp(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run: `go test ./internal/cli -run TestRootWithoutArgumentsOnlyPrintsHelp -v`
 
 Expected: FAIL because `NewRoot` and `Dependencies` do not exist.
 
-- [ ] **Step 3: Implement the minimal root command**
+- [x] **Step 3: Implement the minimal root command**
 
 ```go
 type Dependencies struct {
@@ -109,13 +109,13 @@ func NewRoot(_ Dependencies) *cobra.Command {
 
 Each `main.go` must only construct its root and call `Execute`; it must not read configuration before Cobra selects a subcommand.
 
-- [ ] **Step 4: Verify GREEN and all binaries build**
+- [x] **Step 4: Verify GREEN and all binaries build**
 
 Run: `go test ./internal/cli -run TestRootWithoutArgumentsOnlyPrintsHelp -v && go build ./cmd/...`
 
 Expected: PASS and three binaries compile.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add go.mod cmd internal/cli internal/buildinfo .gitignore
@@ -133,7 +133,7 @@ git commit -m "feat(cli): add safe command foundation"
 - Create: `scripts/check-capability-coverage/main.go`
 - Create: `scripts/check-capability-coverage.self-test.sh`
 
-- [ ] **Step 1: Write the failing manifest validation tests**
+- [x] **Step 1: Write the failing manifest validation tests**
 
 ```go
 func TestManifestRejectsDuplicateIDsAndMissingCLIBindings(t *testing.T) {
@@ -145,13 +145,13 @@ func TestManifestRejectsDuplicateIDsAndMissingCLIBindings(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run: `go test ./internal/capability -v`
 
 Expected: FAIL because the package does not exist.
 
-- [ ] **Step 3: Define the foundation capabilities**
+- [x] **Step 3: Define the foundation capabilities**
 
 The JSON manifest must contain exactly these initial IDs and CLI bindings:
 
@@ -181,7 +181,7 @@ The JSON manifest must contain exactly these initial IDs and CLI bindings:
 
 The Go validator must reject empty IDs, duplicates, unknown auth classes, unknown side effects and missing CLI bindings.
 
-- [ ] **Step 4: Implement and run the gate negative self-test**
+- [x] **Step 4: Implement and run the gate negative self-test**
 
 `check-capability-coverage.self-test.sh` copies fixtures to a temporary directory, removes `admin.user.create` from CLI bindings, runs the gate, and asserts a non-zero exit plus the exact message `missing CLI binding: admin.user.create`. It then changes one Skill ID to `admin.user.creat` and asserts `unknown Skill capability: admin.user.creat`.
 
@@ -189,7 +189,7 @@ Run: `go test ./internal/capability -v && bash scripts/check-capability-coverage
 
 Expected: unit tests PASS and both pathological fixtures are caught.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add capabilities internal/capability internal/cli/bindings.json skill/tashan-compute/capability-references.json scripts
@@ -206,7 +206,7 @@ git commit -m "feat(capability): define foundation registry"
 - Create: `internal/httpapi/server_test.go`
 - Create: `.env.example`
 
-- [ ] **Step 1: Write failing production-configuration tests**
+- [x] **Step 1: Write failing production-configuration tests**
 
 ```go
 func TestProductionRejectsMissingSecretsAndPlainHTTP(t *testing.T) {
@@ -225,13 +225,13 @@ func TestDevelopmentDefaultsStayOnLoopback(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the tests and verify RED**
+- [x] **Step 2: Run the tests and verify RED**
 
 Run: `go test ./internal/config ./internal/httpapi -v`
 
 Expected: FAIL because both packages are missing.
 
-- [ ] **Step 3: Implement explicit configuration and stable errors**
+- [x] **Step 3: Implement explicit configuration and stable errors**
 
 Define `Config` with `Environment`, `ListenAddress`, `PublicURL`, `DatabaseURL`, `RedisURL`, `AccessPrivateKeyFile`, `AccessPublicKeyFile`, `RefreshPepperFile`, `TrustedProxyCIDRs` and `AllowedOrigins`. Production rejects loopback data services, wildcard origins, obvious dummy values, missing key files and non-HTTPS public URLs.
 
@@ -250,13 +250,13 @@ type ErrorResponse struct {
 
 `GET /v1/health` returns only build version and status; it never exposes dependency URLs, hostnames or environment values.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `go test ./internal/config ./internal/httpapi -v`
 
 Expected: PASS, including a test that malformed JSON returns `request.invalid_json` and no Go error text.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add internal/config internal/httpapi .env.example
@@ -272,7 +272,7 @@ git commit -m "feat(api): add fail-closed configuration"
 - Create: `internal/testkit/postgres.go`
 - Create: `compose.test.yml`
 
-- [ ] **Step 1: Write the failing schema integration test**
+- [x] **Step 1: Write the failing schema integration test**
 
 ```go
 func TestIdentitySchemaEnforcesServerRolesAndSessionRevocation(t *testing.T) {
@@ -286,25 +286,25 @@ func TestIdentitySchemaEnforcesServerRolesAndSessionRevocation(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run: `go test ./internal/store/postgres -run TestIdentitySchema -v`
 
 Expected: FAIL because the migration runner is missing.
 
-- [ ] **Step 3: Implement the ordered migration**
+- [x] **Step 3: Implement the ordered migration**
 
 `0001_identity.sql` must create UUID-keyed accounts, devices, sessions, organizations, memberships and append-only audit events. Role columns use PostgreSQL CHECK constraints with only `platform_admin`, `org_admin`, `developer`, and `viewer`. Accounts include `password_version`, `must_change_password`, `disabled_at`; sessions include a hashed refresh token, `device_id`, expiry, rotation family and `revoked_at`.
 
 No migration may seed usernames, passwords or signing keys. The migration runner uses a PostgreSQL advisory lock and records SHA-256 for each applied file; a changed applied migration fails closed.
 
-- [ ] **Step 4: Run schema and migration-pathology tests**
+- [x] **Step 4: Run schema and migration-pathology tests**
 
 Run: `docker compose -f compose.test.yml up -d postgres && go test ./internal/store/postgres -v`
 
 Expected: PASS for first and repeated migration; PASS when the test proves an altered applied migration is rejected.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add migrations internal/store/postgres internal/testkit compose.test.yml
@@ -321,7 +321,7 @@ git commit -m "feat(storage): add identity schema"
 - Create: `internal/identity/account.go`
 - Create: `internal/store/postgres/accounts.go`
 
-- [ ] **Step 1: Write the adversarial password tests first**
+- [x] **Step 1: Write the adversarial password tests first**
 
 ```go
 func TestInitialPasswordCannotUseProtectedCapabilities(t *testing.T) {
@@ -342,25 +342,25 @@ func TestClientCannotChooseRoleWhenAccountIsCreated(t *testing.T) {
 
 Also test empty/oversized usernames, Unicode-confusable usernames, a password equal to the username, overlong passwords, wrong-password timing tolerance and disabled accounts.
 
-- [ ] **Step 2: Run the tests and verify RED**
+- [x] **Step 2: Run the tests and verify RED**
 
 Run: `go test ./internal/auth -run 'Password|Initial|ClientCannotChooseRole' -v`
 
 Expected: FAIL because the service is missing.
 
-- [ ] **Step 3: Implement Argon2id and account state transitions**
+- [x] **Step 3: Implement Argon2id and account state transitions**
 
 Use random 16-byte salts and PHC-format Argon2id hashes with parameters stored in the hash. `CreateAccountInput` has no role field. Only the server-local bootstrap path can set the first `platform_admin`; subsequent role assignment is a separate audited server authorization operation.
 
 Initial-password change increments `password_version`, clears `must_change_password`, revokes every session, and returns no session until the user performs a fresh login with the new password.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `go test ./internal/auth -v`
 
 Expected: PASS and no test logs contain any fixture password.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add internal/auth internal/identity internal/store/postgres/accounts.go
@@ -376,7 +376,7 @@ git commit -m "feat(auth): enforce managed accounts"
 - Create: `internal/auth/session_test.go`
 - Create: `internal/store/postgres/sessions.go`
 
-- [ ] **Step 1: Write token forgery and revocation tests before implementation**
+- [x] **Step 1: Write token forgery and revocation tests before implementation**
 
 ```go
 func TestRejectsSelfSignedAndClientRoleTokens(t *testing.T) {
@@ -399,25 +399,25 @@ func TestPasswordResetRevokesEveryDevice(t *testing.T) {
 
 Also test expired access tokens, refresh replay after rotation, mismatched device IDs, disabled accounts and old `password_version`.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 Run: `go test ./internal/auth -run 'Token|Session|Reset|Refresh' -v`
 
 Expected: FAIL because token/session types are missing.
 
-- [ ] **Step 3: Implement session binding**
+- [x] **Step 3: Implement session binding**
 
 Access tokens use Ed25519, a fixed issuer and audience, a maximum 10-minute lifetime, `sub`, `sid`, `did`, `password_version`, `iat`, `nbf`, `exp`, and no trusted role claim. Middleware loads the session and current account/membership roles from PostgreSQL for protected operations.
 
 Refresh tokens are 32 random bytes returned once, stored only as a pepper-keyed hash, rotated on every use and grouped into a family. Replay revokes the family. Device revoke, account disable and password reset revoke matching sessions transactionally.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `go test ./internal/auth ./internal/store/postgres -v`
 
 Expected: PASS, including replay and all-device reset cases.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add internal/auth internal/store/postgres/sessions.go
@@ -437,7 +437,7 @@ git commit -m "security(auth): bind tokens to devices"
 - Create: `internal/audit/redact_test.go`
 - Create: `internal/store/postgres/audit.go`
 
-- [ ] **Step 1: Write the real HTTP rejection matrix**
+- [x] **Step 1: Write the real HTTP rejection matrix**
 
 ```go
 func TestAdminRoutesRejectEveryClientSideEscalation(t *testing.T) {
@@ -458,25 +458,25 @@ func TestAdminRoutesRejectEveryClientSideEscalation(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the integration test and verify RED**
+- [x] **Step 2: Run the integration test and verify RED**
 
 Run: `go test ./internal/httpapi -run TestAdminRoutesRejectEveryClientSideEscalation -v`
 
 Expected: FAIL because middleware and routes do not exist.
 
-- [ ] **Step 3: Implement routes with server-side authorization**
+- [x] **Step 3: Implement routes with server-side authorization**
 
 Register the paths listed in Task 2. The request body for account creation contains only `username`; the initial password is carried in a separately parsed sensitive field that is redacted before request logging and never stored in idempotency response bodies. Admin reset returns only account ID, `must_change_password=true`, and revoked-device count.
 
 The audit event records actor account, device, effective server role, request ID, trusted source IP, user agent, capability, target type/ID, result and redacted metadata. Redaction recursively removes keys matching password, token, authorization, cookie, secret and private-key patterns.
 
-- [ ] **Step 4: Verify success and leakage rejection**
+- [x] **Step 4: Verify success and leakage rejection**
 
 Run: `go test ./internal/httpapi ./internal/audit -v`
 
 Expected: PASS. A dedicated test serializes API logs and audit rows and proves they contain none of the fixture password, refresh token, bearer token or private key bytes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add internal/httpapi internal/audit internal/store/postgres/audit.go
@@ -491,7 +491,7 @@ git commit -m "feat(api): enforce server-side admin roles"
 - Create: `internal/admin/bootstrap_test.go`
 - Modify: `cmd/tcompute-admin/main.go`
 
-- [ ] **Step 1: Write bootstrap safety tests**
+- [x] **Step 1: Write bootstrap safety tests**
 
 ```go
 func TestBootstrapRequiresDirectDatabaseAndHiddenPassword(t *testing.T) {
@@ -507,23 +507,23 @@ func TestBootstrapRequiresDirectDatabaseAndHiddenPassword(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run: `go test ./internal/admin -v`
 
 Expected: FAIL because the package does not exist.
 
-- [ ] **Step 3: Implement one-time bootstrap**
+- [x] **Step 3: Implement one-time bootstrap**
 
 `tcompute-admin bootstrap --username <name>` reads the password twice from a hidden TTY. `--password-stdin` is allowed for controlled automation; no password flag or environment variable exists. The command requires a direct PostgreSQL connection, refuses HTTP API URLs, takes an advisory lock, and succeeds only when no platform administrator exists. A second attempt returns `bootstrap.already_completed` without changing any account.
 
-- [ ] **Step 4: Verify GREEN and command help**
+- [x] **Step 4: Verify GREEN and command help**
 
 Run: `go test ./internal/admin -v && go run ./cmd/tcompute-admin --help`
 
 Expected: PASS; help contains no password value flag and no remote bootstrap option.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add cmd/tcompute-admin internal/admin
@@ -546,7 +546,7 @@ git commit -m "security(admin): add local bootstrap command"
 - Create: `internal/credentials/memory.go`
 - Create: `internal/credentials/store_test.go`
 
-- [ ] **Step 1: Write CLI secret-input and role-forgery tests**
+- [x] **Step 1: Write CLI secret-input and role-forgery tests**
 
 ```go
 func TestLoginRejectsPasswordArgumentAndNeverPrintsTokens(t *testing.T) {
@@ -563,25 +563,25 @@ func TestLoginRejectsPasswordArgumentAndNeverPrintsTokens(t *testing.T) {
 
 Add a test invoking `admin user create --role platform_admin` and assert `unknown flag: --role`; public CLI account creation cannot choose platform role.
 
-- [ ] **Step 2: Run CLI tests and verify RED**
+- [x] **Step 2: Run CLI tests and verify RED**
 
 Run: `go test ./internal/cli ./internal/credentials ./internal/client -v`
 
 Expected: FAIL because the commands and stores are missing.
 
-- [ ] **Step 3: Implement secure credential behavior**
+- [x] **Step 3: Implement secure credential behavior**
 
 macOS uses Keychain and Linux uses Secret Service. When secure storage is unavailable, interactive login holds credentials in memory and prints a clear non-persistent warning; it does not silently create a plaintext file. Every command supports stable JSON output, keeps stdout machine-readable and sends warnings to stderr.
 
 Implement every foundation binding from Task 2. `admin user create` and `reset-password` accept initial passwords only through hidden confirmation or `--password-stdin`. The client never sends a role claim as an authentication authority; organization role changes target only `org_admin`, `developer`, or `viewer` and require a server-authorized caller.
 
-- [ ] **Step 4: Verify GREEN and help safety**
+- [x] **Step 4: Verify GREEN and help safety**
 
 Run: `go test ./internal/cli ./internal/credentials ./internal/client -v && go run ./cmd/tcompute --help`
 
 Expected: PASS; help documents that installation does not grant an account and contains no AUP SSH instructions.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add internal/client internal/cli internal/credentials
@@ -603,7 +603,7 @@ git commit -m "feat(cli): add managed account commands"
 - Create: `scripts/check-release-contract.self-test.sh`
 - Create: `tests/distribution/install-cli.sh`
 
-- [ ] **Step 1: Write installer adversarial tests before the installer**
+- [x] **Step 1: Write installer adversarial tests before the installer**
 
 The test must construct and reject all of these inputs:
 
@@ -619,25 +619,25 @@ failed smoke test after extraction
 
 Each failure test asserts the previous installed version still runs and no partial target directory remains.
 
-- [ ] **Step 2: Run installer tests and verify RED**
+- [x] **Step 2: Run installer tests and verify RED**
 
 Run: `bash tests/distribution/install-cli.sh`
 
 Expected: FAIL because the installer is missing.
 
-- [ ] **Step 3: Implement safe fixed-version distribution**
+- [x] **Step 3: Implement safe fixed-version distribution**
 
 The installer with no arguments prints help and performs no network or writes. `--install` reads the exact version and assets from `release.json`, downloads only from `TashanGKD/tashan-compute` GitHub Releases, verifies SHA-256 and archive layout, installs under `${XDG_DATA_HOME:-$HOME/.local/share}/tcompute/versions/<version>`, and atomically updates `${TCOMPUTE_BIN_DIR:-$HOME/.local/bin}/tcompute` only after `--version` and no-argument smoke tests pass.
 
 Release archives include the Go binary, license, version metadata and no configuration or credentials. Skill documentation says explicitly: installing the public Skill/CLI does not create an account or grant AUP/admin access.
 
-- [ ] **Step 4: Run distribution and release drift tests**
+- [x] **Step 4: Run distribution and release drift tests**
 
 Run: `bash tests/distribution/install-cli.sh && bash scripts/check-release-contract.self-test.sh`
 
 Expected: PASS; negative release fixture fails with the exact drift message and the prior install survives every injected failure.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skill release scripts/build-cli-release.sh scripts/check-release-contract* tests/distribution
@@ -656,19 +656,19 @@ git commit -m "feat(distribution): add public skill installer"
 - Create: `docs/verification/foundation-template.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Write gate self-tests before the gates**
+- [x] **Step 1: Write gate self-tests before the gates**
 
 `check-public-repo-secrets.self-test.sh` builds a temporary Git fixture containing representative private-key headers, bearer tokens, database URLs with passwords, password assignments and AUP SSH host/user fields. It asserts the gate rejects every fixture, then replaces each value with documented redacted examples and asserts success.
 
 `verify-foundation.self-test.sh` removes one gate from a copied verification script and asserts the verifier fails with `required gate missing`, proving the aggregator cannot silently skip a security gate.
 
-- [ ] **Step 2: Run the self-tests and verify RED**
+- [x] **Step 2: Run the self-tests and verify RED**
 
 Run: `bash scripts/check-public-repo-secrets.self-test.sh && bash scripts/verify-foundation.self-test.sh`
 
 Expected: FAIL because the scripts do not exist.
 
-- [ ] **Step 3: Implement CI and two-user lifecycle E2E**
+- [x] **Step 3: Implement CI and two-user lifecycle E2E**
 
 `identity_lifecycle_test.go` must start real PostgreSQL and Redis, bootstrap one admin through the server-local command, create two ordinary accounts and one organization through the HTTPS test API, force both initial password changes, log in from separate devices, add both users to the organization, revoke one device, reset one password and verify every old session is rejected.
 
@@ -676,13 +676,13 @@ The same test must send self-signed and client-role JWTs to `/v1/admin/users` an
 
 CI runs formatting, `go vet`, unit tests, PostgreSQL/Redis integration tests, gate self-tests, distribution tests, `go test -race`, and the two-user E2E. Release publication is a separate manually approved workflow and is not added until a real production health gate exists.
 
-- [ ] **Step 4: Run the full verifier**
+- [x] **Step 4: Run the full verifier**
 
 Run: `bash scripts/verify-foundation.sh`
 
 Expected: all checks PASS from a clean clone with only Docker and Go installed. No command connects to production or sends credentials.
 
-- [ ] **Step 5: Update README with only verified commands and commit**
+- [x] **Step 5: Update README with only verified commands and commit**
 
 ```bash
 git add .github scripts tests/e2e docs/verification README.md

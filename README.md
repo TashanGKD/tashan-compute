@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-项目处于设计完成、等待实施计划的阶段。仓库尚无可运行服务或可发布 CLI；任何安装、运行或部署命令都必须在对应实现和验证完成后才加入本 README。
+安全地基已经实现：管理员托管账号、首次改密、多设备会话、组织成员角色、审计、API、CLI 命令树、公开 Skill、固定版本安装器和 CI 门禁均已有可运行代码与测试。个人/组织文件空间和计算执行器尚未实现；当前版本不得宣称完整产品可用。
 
 ## 公开仓库与访问权限
 
@@ -19,11 +19,32 @@
 
 ## 快速开始
 
-当前尚未发布可安装版本。首个 Release 完成后，本节只提供两步：从本公开仓库安装 Skill，再由 Skill 安装固定版本且经过校验和验证的 CLI。安装本身不会登录服务器，也不会创建账号。
+### 前置条件
+
+- Go 1.26
+- Docker 29+ 与 Docker Compose 5+
+
+### 本地验证
+
+```bash
+docker compose -f compose.test.yml up -d postgres redis
+bash scripts/verify-foundation.sh
+docker compose -f compose.test.yml down --volumes
+```
+
+当前尚未发布 GitHub CLI Release。仓库中的安装器只用于本地分发测试；在 Release 资产和生产健康门禁完成前，不应引导外部用户执行安装。
 
 ## 常用命令
 
-当前没有已发布命令。设计中的命令面以 [`docs/superpowers/specs/2026-08-29-tashan-compute-design.md`](docs/superpowers/specs/2026-08-29-tashan-compute-design.md) 为准，只有实际实现并通过测试的命令才会进入本表。
+| 命令 | 用途 |
+| --- | --- |
+| `bash scripts/verify-foundation.sh` | 运行单元、集成、E2E、分发和安全门禁 |
+| `go run ./cmd/tcompute` | 仅显示本地 CLI 帮助，不联网 |
+| `go run ./cmd/tcompute-api` | 仅显示 API 服务帮助，不加载配置 |
+| `go run ./cmd/tcompute-api serve` | 显式启动已配置的本地 API |
+| `go run ./cmd/tcompute-admin bootstrap --username <name>` | 在服务器本地直连数据库创建首位管理员 |
+| `bash tests/distribution/build-cli-release.sh` | 验证三平台 CLI Release 构建 |
+| `bash tests/distribution/install-cli.sh` | 验证空用户安装、升级和失败回滚 |
 
 ## 产品边界
 
@@ -39,6 +60,14 @@
 docs/
   superpowers/
     specs/       已确认的产品与技术规格
+    plans/       分阶段实施计划
+cmd/             CLI、API 和服务器本地管理员入口
+internal/        认证、授权、存储、HTTP、CLI 与应用服务
+migrations/      带 SHA-256 防漂移的 PostgreSQL 迁移
+capabilities/    API/CLI/Skill 能力真源
+skill/           可公开安装的 Codex Skill
+scripts/         验证、构建与一致性门禁
+tests/           双用户 E2E 与分发测试
 ```
 
 代码目录、常用命令、本地启动方式和环境变量会由实施计划确定，并与首个可运行纵向切片同时加入，避免在实现前声明不存在的接口或命令。
@@ -48,11 +77,15 @@ docs/
 | 文档 | 用途 |
 | --- | --- |
 | [`docs/superpowers/specs/2026-08-29-tashan-compute-design.md`](docs/superpowers/specs/2026-08-29-tashan-compute-design.md) | 已确认的独立产品与技术设计 |
+| [`docs/superpowers/plans/2026-08-29-foundation-auth-distribution.md`](docs/superpowers/plans/2026-08-29-foundation-auth-distribution.md) | 安全地基、认证和公开分发实施计划 |
+| [`docs/verification/2026-08-29-foundation.md`](docs/verification/2026-08-29-foundation.md) | 当前验证证据与未完成边界 |
 
 ## 环境变量
 
-阅读仓库和未来安装客户端不需要环境变量。服务器开发配置将在 `.env.example` 中只列变量名和安全说明；真实值不得提交。CLI 登录凭据保存在操作系统安全存储中，不通过仓库或 `.env` 分发。
+阅读仓库和未来安装客户端不需要环境变量。`tcompute-api serve` 使用 `.env.example` 中列出的变量，包括 PostgreSQL、Redis、Ed25519 密钥文件、Refresh Pepper、可信代理和 CORS 来源。真实值不得提交；三个 Secret 文件必须是非符号链接、权限不超过 `0600`，内容为固定长度随机字节的 Base64。
 
 ## 部署边界
 
 生产部署必须使用独立目录、端口、数据库、对象存储命名空间、容器、域名入口、Secret 和回滚记录，不影响任何既有他山项目。
+
+当前尚未部署到 AUP，也未配置生产域名、GitHub Release 或真实用户账号。

@@ -6,6 +6,7 @@ required_gates=(
   "check-capability-coverage.self-test.sh"
   "check-release-contract.self-test.sh"
   "check-public-repo-secrets.self-test.sh"
+  "check-skill-structure.self-test.sh"
   "install-cli.sh"
   "build-cli-release.sh"
 )
@@ -47,9 +48,11 @@ run_gate "go-vet" go vet ./...
 run_gate "capability-coverage" go run ./scripts/check-capability-coverage --root .
 run_gate "release-contract" go run ./scripts/check-release-contract --root .
 run_gate "public-repo-secrets" go run ./scripts/check-public-repo-secrets --root .
+run_gate "skill-structure" go run ./scripts/check-skill-structure --root .
 run_gate "check-capability-coverage.self-test.sh" bash scripts/check-capability-coverage.self-test.sh
 run_gate "check-release-contract.self-test.sh" bash scripts/check-release-contract.self-test.sh
 run_gate "check-public-repo-secrets.self-test.sh" bash scripts/check-public-repo-secrets.self-test.sh
+run_gate "check-skill-structure.self-test.sh" bash scripts/check-skill-structure.self-test.sh
 run_gate "install-cli.sh" bash tests/distribution/install-cli.sh
 run_gate "build-cli-release.sh" bash tests/distribution/build-cli-release.sh
 
