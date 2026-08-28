@@ -7,6 +7,7 @@ import (
 
 var ErrAccountNotFound = errors.New("account not found")
 var ErrPrincipalInvalid = errors.New("principal is no longer valid")
+var ErrBootstrapCompleted = errors.New("platform administrator bootstrap already completed")
 
 type Account struct {
 	ID                 string

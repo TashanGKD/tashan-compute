@@ -94,3 +94,34 @@ func (store *AccountStore) Create(ctx context.Context, account identity.Account)
 	}
 	return account, nil
 }
+
+func (store *AccountStore) Bootstrap(ctx context.Context, account identity.Account) (identity.Account, error) {
+	tx, err := store.db.BeginTx(ctx, nil)
+	if err != nil {
+		return identity.Account{}, fmt.Errorf("begin administrator bootstrap: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if _, err := tx.ExecContext(ctx, `SELECT pg_advisory_xact_lock(827436701245194)`); err != nil {
+		return identity.Account{}, fmt.Errorf("lock administrator bootstrap: %w", err)
+	}
+	var exists bool
+	if err := tx.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM accounts WHERE platform_admin)`).Scan(&exists); err != nil {
+		return identity.Account{}, fmt.Errorf("check administrator bootstrap: %w", err)
+	}
+	if exists {
+		return identity.Account{}, identity.ErrBootstrapCompleted
+	}
+	err = tx.QueryRowContext(ctx, `
+		INSERT INTO accounts (username, password_hash, platform_admin, password_version, must_change_password)
+		VALUES ($1, $2, true, $3, false)
+		RETURNING id, platform_admin, must_change_password, disabled_at`,
+		account.Username, account.PasswordHash, account.PasswordVersion,
+	).Scan(&account.ID, &account.PlatformAdmin, &account.MustChangePassword, &account.DisabledAt)
+	if err != nil {
+		return identity.Account{}, fmt.Errorf("create platform administrator: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return identity.Account{}, fmt.Errorf("commit administrator bootstrap: %w", err)
+	}
+	return account, nil
+}

@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/TashanGKD/tashan-compute/internal/identity"
@@ -38,5 +39,28 @@ func TestAccountStoreCreatesOrdinaryInitialPasswordAccount(t *testing.T) {
 	}
 	if found.ID != account.ID || found.PasswordHash != "fixture-hash" {
 		t.Fatalf("FindByUsername() = %+v", found)
+	}
+}
+
+func TestAccountStoreBootstrapsExactlyOnePlatformAdministrator(t *testing.T) {
+	db := testkit.Postgres(t)
+	resetPublicSchema(t, db)
+	if err := store.Migrate(context.Background(), db); err != nil {
+		t.Fatalf("Migrate() error = %v", err)
+	}
+	repository := store.NewAccountStore(db)
+	account, err := repository.Bootstrap(context.Background(), identity.Account{
+		Username: "root", PasswordHash: "fixture-hash", PasswordVersion: 1,
+	})
+	if err != nil {
+		t.Fatalf("first Bootstrap() error = %v", err)
+	}
+	if !account.PlatformAdmin {
+		t.Fatal("bootstrapped account is not platform administrator")
+	}
+	if _, err := repository.Bootstrap(context.Background(), identity.Account{
+		Username: "other", PasswordHash: "fixture-hash", PasswordVersion: 1,
+	}); !errors.Is(err, identity.ErrBootstrapCompleted) {
+		t.Fatalf("second Bootstrap() error = %v", err)
 	}
 }
