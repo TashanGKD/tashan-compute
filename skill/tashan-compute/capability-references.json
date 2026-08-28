@@ -1,0 +1,21 @@
+[
+  "system.health.read",
+  "capability.list",
+  "auth.login",
+  "auth.password.initial_change",
+  "auth.password.change",
+  "auth.refresh",
+  "auth.logout",
+  "auth.whoami",
+  "device.list",
+  "device.revoke",
+  "admin.user.create",
+  "admin.user.reset_password",
+  "admin.user.disable",
+  "admin.organization.create",
+  "organization.list",
+  "organization.member.add",
+  "organization.member.remove",
+  "organization.member.role_set",
+  "audit.list"
+]

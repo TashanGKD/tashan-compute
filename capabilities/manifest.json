@@ -1,0 +1,21 @@
+[
+  {"id":"system.health.read","version":1,"cli":"health","auth":"public","side_effect":"none"},
+  {"id":"capability.list","version":1,"cli":"capability list","auth":"public","side_effect":"none"},
+  {"id":"auth.login","version":1,"cli":"auth login","auth":"public","side_effect":"session"},
+  {"id":"auth.password.initial_change","version":1,"cli":"auth password initial-change","auth":"initial_password","side_effect":"session"},
+  {"id":"auth.password.change","version":1,"cli":"auth password change","auth":"user","side_effect":"session"},
+  {"id":"auth.refresh","version":1,"cli":"auth refresh","auth":"refresh_token","side_effect":"session"},
+  {"id":"auth.logout","version":1,"cli":"auth logout","auth":"user","side_effect":"revoke"},
+  {"id":"auth.whoami","version":1,"cli":"auth whoami","auth":"user","side_effect":"none"},
+  {"id":"device.list","version":1,"cli":"device list","auth":"user","side_effect":"none"},
+  {"id":"device.revoke","version":1,"cli":"device revoke","auth":"user","side_effect":"revoke"},
+  {"id":"admin.user.create","version":1,"cli":"admin user create","auth":"platform_admin","side_effect":"write"},
+  {"id":"admin.user.reset_password","version":1,"cli":"admin user reset-password","auth":"platform_admin","side_effect":"revoke"},
+  {"id":"admin.user.disable","version":1,"cli":"admin user disable","auth":"platform_admin","side_effect":"revoke"},
+  {"id":"admin.organization.create","version":1,"cli":"admin org create","auth":"platform_admin","side_effect":"write"},
+  {"id":"organization.list","version":1,"cli":"org list","auth":"user","side_effect":"none"},
+  {"id":"organization.member.add","version":1,"cli":"org member add","auth":"org_admin","side_effect":"write"},
+  {"id":"organization.member.remove","version":1,"cli":"org member remove","auth":"org_admin","side_effect":"revoke"},
+  {"id":"organization.member.role_set","version":1,"cli":"org member role-set","auth":"org_admin","side_effect":"write"},
+  {"id":"audit.list","version":1,"cli":"audit list","auth":"scoped_auditor","side_effect":"none"}
+]

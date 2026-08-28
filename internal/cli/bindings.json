@@ -1,0 +1,21 @@
+{
+  "system.health.read":"health",
+  "capability.list":"capability list",
+  "auth.login":"auth login",
+  "auth.password.initial_change":"auth password initial-change",
+  "auth.password.change":"auth password change",
+  "auth.refresh":"auth refresh",
+  "auth.logout":"auth logout",
+  "auth.whoami":"auth whoami",
+  "device.list":"device list",
+  "device.revoke":"device revoke",
+  "admin.user.create":"admin user create",
+  "admin.user.reset_password":"admin user reset-password",
+  "admin.user.disable":"admin user disable",
+  "admin.organization.create":"admin org create",
+  "organization.list":"org list",
+  "organization.member.add":"org member add",
+  "organization.member.remove":"org member remove",
+  "organization.member.role_set":"org member role-set",
+  "audit.list":"audit list"
+}
