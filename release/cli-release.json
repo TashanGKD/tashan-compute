@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.0-alpha.1",
+  "repository": "TashanGKD/tashan-compute",
+  "platforms": [
+    {"id": "darwin-arm64", "asset": "tcompute-v0.1.0-alpha.1-darwin-arm64.tar.gz"},
+    {"id": "darwin-x64", "asset": "tcompute-v0.1.0-alpha.1-darwin-x64.tar.gz"},
+    {"id": "linux-x64", "asset": "tcompute-v0.1.0-alpha.1-linux-x64.tar.gz"}
+  ]
+}

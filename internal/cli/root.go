@@ -29,6 +29,7 @@ func NewRoot(dependencies Dependencies) *cobra.Command {
 		},
 	}
 	cmd.Version = buildinfo.Version
+	cmd.SetVersionTemplate("{{.Version}}\n")
 	cmd.AddCommand(newAuthCommand(dependencies))
 	return cmd
 }

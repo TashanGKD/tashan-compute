@@ -1,0 +1,6 @@
+interface:
+  display_name: "Tashan Compute"
+  short_description: "Operate authorized remote compute spaces through CLI"
+  default_prompt: "Use $tashan-compute to inspect my authorized compute spaces."
+policy:
+  allow_implicit_invocation: true

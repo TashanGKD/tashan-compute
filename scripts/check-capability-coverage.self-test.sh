@@ -16,7 +16,7 @@ copy_fixture() {
 run_gate_expect_failure() {
   local expected=$1
   local output
-  if output=$(cd "$repo_root" && go run ./scripts/check-capability-coverage.go --root "$fixture_root" 2>&1); then
+  if output=$(cd "$repo_root" && go run ./scripts/check-capability-coverage --root "$fixture_root" 2>&1); then
     echo "self-test failed: gate accepted invalid fixture" >&2
     exit 1
   fi

@@ -130,7 +130,7 @@ git commit -m "feat(cli): add safe command foundation"
 - Create: `internal/capability/manifest_test.go`
 - Create: `internal/cli/bindings.json`
 - Create: `skill/tashan-compute/capability-references.json`
-- Create: `scripts/check-capability-coverage.go`
+- Create: `scripts/check-capability-coverage/main.go`
 - Create: `scripts/check-capability-coverage.self-test.sh`
 
 - [ ] **Step 1: Write the failing manifest validation tests**
@@ -599,7 +599,7 @@ git commit -m "feat(cli): add managed account commands"
 - Create: `skill/tashan-compute/references/security.md`
 - Create: `release/cli-release.json`
 - Create: `scripts/build-cli-release.sh`
-- Create: `scripts/check-release-contract.go`
+- Create: `scripts/check-release-contract/main.go`
 - Create: `scripts/check-release-contract.self-test.sh`
 - Create: `tests/distribution/install-cli.sh`
 
