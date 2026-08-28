@@ -5,12 +5,51 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TashanGKD/tashan-compute/internal/identity"
 )
 
 type AccountStore struct {
 	db *sql.DB
+}
+
+func (store *AccountStore) ResetPasswordAndRevokeSessions(ctx context.Context, accountID, passwordHash string, now time.Time) (int64, error) {
+	tx, err := store.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, fmt.Errorf("begin password reset: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	result, err := tx.ExecContext(ctx, `
+		UPDATE accounts
+		SET password_hash = $1, password_version = password_version + 1,
+		    must_change_password = true, updated_at = $2
+		WHERE id = $3`, passwordHash, now, accountID)
+	if err != nil {
+		return 0, fmt.Errorf("reset account password: %w", err)
+	}
+	updated, err := result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("count reset accounts: %w", err)
+	}
+	if updated != 1 {
+		return 0, identity.ErrAccountNotFound
+	}
+	result, err = tx.ExecContext(ctx, `
+		UPDATE sessions SET revoked_at = COALESCE(revoked_at, $1)
+		WHERE account_id = $2 AND revoked_at IS NULL`, now, accountID)
+	if err != nil {
+		return 0, fmt.Errorf("revoke account sessions: %w", err)
+	}
+	revoked, err := result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("count revoked sessions: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("commit password reset: %w", err)
+	}
+	return revoked, nil
 }
 
 func (store *AccountStore) FindByUsername(ctx context.Context, username string) (identity.Account, error) {
