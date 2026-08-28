@@ -1,15 +1,23 @@
 package cli
 
 import (
+	"io"
+
 	"github.com/TashanGKD/tashan-compute/internal/buildinfo"
+	"github.com/TashanGKD/tashan-compute/internal/credentials"
 	"github.com/spf13/cobra"
 )
 
 type Dependencies struct {
-	NetworkProbe func()
+	NetworkProbe    func()
+	LoginClient     LoginClient
+	CredentialStore credentials.Store
+	Stdin           io.Reader
+	IsTerminal      func() bool
+	ReadPassword    func(string) (string, error)
 }
 
-func NewRoot(_ Dependencies) *cobra.Command {
+func NewRoot(dependencies Dependencies) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "tcompute",
 		Short:         "Tashan Compute CLI",
@@ -21,5 +29,6 @@ func NewRoot(_ Dependencies) *cobra.Command {
 		},
 	}
 	cmd.Version = buildinfo.Version
+	cmd.AddCommand(newAuthCommand(dependencies))
 	return cmd
 }
