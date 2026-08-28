@@ -79,3 +79,30 @@ func nullableBytes(value []byte) any {
 	}
 	return value
 }
+
+func (store *AuditStore) List(ctx context.Context, limit int) ([]audit.Record, error) {
+	if limit < 1 || limit > 1000 {
+		return nil, errors.New("audit limit must be between 1 and 1000")
+	}
+	rows, err := store.db.QueryContext(ctx, `SELECT id, occurred_at, request_id, actor_account_id::text, actor_device_id::text, effective_role, capability_id, target_type, target_id, outcome, source_ip::text, user_agent, metadata FROM audit_events ORDER BY id DESC LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var records []audit.Record
+	for rows.Next() {
+		var record audit.Record
+		var actorAccount, actorDevice, role, targetType, targetID, sourceIP, userAgent sql.NullString
+		var metadata []byte
+		if err := rows.Scan(&record.ID, &record.OccurredAt, &record.RequestID, &actorAccount, &actorDevice, &role, &record.CapabilityID, &targetType, &targetID, &record.Outcome, &sourceIP, &userAgent, &metadata); err != nil {
+			return nil, err
+		}
+		record.ActorAccountID, record.ActorDeviceID, record.EffectiveRole = actorAccount.String, actorDevice.String, role.String
+		record.TargetType, record.TargetID, record.SourceIP, record.UserAgent = targetType.String, targetID.String, sourceIP.String, userAgent.String
+		if err := json.Unmarshal(metadata, &record.Metadata); err != nil {
+			return nil, err
+		}
+		records = append(records, record)
+	}
+	return records, rows.Err()
+}

@@ -15,6 +15,9 @@ tmp/
 dist/
 bin/
 coverage/
+/tcompute
+/tcompute-api
+/tcompute-admin
 
 # Editors and operating systems
 .DS_Store

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -16,6 +17,10 @@ type MapSource map[string]string
 func (source MapSource) Get(key string) string {
 	return source[key]
 }
+
+type EnvSource struct{}
+
+func (EnvSource) Get(key string) string { return os.Getenv(key) }
 
 type Config struct {
 	Environment          string

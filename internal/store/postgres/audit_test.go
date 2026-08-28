@@ -42,4 +42,8 @@ func TestAuditStoreRedactsAndPreventsMutation(t *testing.T) {
 	if _, err := db.Exec(`UPDATE audit_events SET outcome = 'failed' WHERE id = $1`, id); err == nil {
 		t.Fatal("audit event update was accepted")
 	}
+	events, err := repository.List(context.Background(), 100)
+	if err != nil || len(events) != 1 {
+		t.Fatalf("List() = %+v, %v", events, err)
+	}
 }

@@ -16,3 +16,8 @@ type Event struct {
 	UserAgent      string
 	Metadata       map[string]any
 }
+
+type Record struct {
+	ID int64
+	Event
+}
