@@ -11,11 +11,7 @@ import (
 
 var ErrUnauthenticated = errors.New("unauthenticated")
 
-type Principal struct {
-	Account   identity.Account
-	DeviceID  string
-	SessionID string
-}
+type Principal = identity.Principal
 
 type Authenticator interface {
 	Authenticate(context.Context, string) (Principal, error)

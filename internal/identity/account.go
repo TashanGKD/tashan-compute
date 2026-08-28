@@ -6,6 +6,7 @@ import (
 )
 
 var ErrAccountNotFound = errors.New("account not found")
+var ErrPrincipalInvalid = errors.New("principal is no longer valid")
 
 type Account struct {
 	ID                 string
@@ -21,4 +22,10 @@ type Actor struct {
 	AccountID     string
 	DeviceID      string
 	PlatformAdmin bool
+}
+
+type Principal struct {
+	Account   Account
+	DeviceID  string
+	SessionID string
 }
