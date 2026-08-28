@@ -15,6 +15,14 @@ type AccountStore struct {
 }
 
 func (store *AccountStore) ResetPasswordAndRevokeSessions(ctx context.Context, accountID, passwordHash string, now time.Time) (int64, error) {
+	return store.updatePasswordAndRevokeSessions(ctx, accountID, passwordHash, true, now)
+}
+
+func (store *AccountStore) ChangePasswordAndRevokeSessions(ctx context.Context, accountID, passwordHash string, now time.Time) (int64, error) {
+	return store.updatePasswordAndRevokeSessions(ctx, accountID, passwordHash, false, now)
+}
+
+func (store *AccountStore) updatePasswordAndRevokeSessions(ctx context.Context, accountID, passwordHash string, mustChange bool, now time.Time) (int64, error) {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, fmt.Errorf("begin password reset: %w", err)
@@ -24,8 +32,8 @@ func (store *AccountStore) ResetPasswordAndRevokeSessions(ctx context.Context, a
 	result, err := tx.ExecContext(ctx, `
 		UPDATE accounts
 		SET password_hash = $1, password_version = password_version + 1,
-		    must_change_password = true, updated_at = $2
-		WHERE id = $3`, passwordHash, now, accountID)
+		    must_change_password = $2, updated_at = $3
+		WHERE id = $4`, passwordHash, mustChange, now, accountID)
 	if err != nil {
 		return 0, fmt.Errorf("reset account password: %w", err)
 	}
@@ -53,11 +61,19 @@ func (store *AccountStore) ResetPasswordAndRevokeSessions(ctx context.Context, a
 }
 
 func (store *AccountStore) FindByUsername(ctx context.Context, username string) (identity.Account, error) {
+	return store.find(ctx, `WHERE username = $1`, username)
+}
+
+func (store *AccountStore) FindByID(ctx context.Context, accountID string) (identity.Account, error) {
+	return store.find(ctx, `WHERE id = $1`, accountID)
+}
+
+func (store *AccountStore) find(ctx context.Context, clause string, value string) (identity.Account, error) {
 	var account identity.Account
 	err := store.db.QueryRowContext(ctx, `
 		SELECT id, username, password_hash, platform_admin, password_version, must_change_password, disabled_at
 		FROM accounts
-		WHERE username = $1`, username).Scan(
+		`+clause, value).Scan(
 		&account.ID,
 		&account.Username,
 		&account.PasswordHash,

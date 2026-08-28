@@ -76,6 +76,21 @@ func (store *SessionStore) RevokeFamily(ctx context.Context, familyID string, no
 	return nil
 }
 
+func (store *SessionStore) RevokeSession(ctx context.Context, accountID, sessionID string, now time.Time) error {
+	result, err := store.db.ExecContext(ctx, `UPDATE sessions SET revoked_at = COALESCE(revoked_at, $1) WHERE id = $2 AND account_id = $3`, now, sessionID, accountID)
+	if err != nil {
+		return fmt.Errorf("revoke session: %w", err)
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("count revoked session: %w", err)
+	}
+	if count != 1 {
+		return auth.ErrSessionNotFound
+	}
+	return nil
+}
+
 const sessionSelect = `
 	SELECT id, account_id, device_id, refresh_token_hash, rotation_family,
 	       password_version, expires_at, rotated_at, revoked_at

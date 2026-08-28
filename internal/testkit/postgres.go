@@ -28,7 +28,7 @@ func Postgres(t *testing.T) *sql.DB {
 	defer cancel()
 	for {
 		if err := db.PingContext(ctx); err == nil {
-			return db
+			break
 		}
 		select {
 		case <-ctx.Done():
@@ -36,4 +36,17 @@ func Postgres(t *testing.T) *sql.DB {
 		case <-time.After(250 * time.Millisecond):
 		}
 	}
+	lockConnection, err := db.Conn(ctx)
+	if err != nil {
+		t.Fatalf("reserve shared test PostgreSQL connection: %v", err)
+	}
+	if _, err := lockConnection.ExecContext(ctx, `SELECT pg_advisory_lock(827436701245199)`); err != nil {
+		_ = lockConnection.Close()
+		t.Fatalf("lock shared test PostgreSQL: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = lockConnection.ExecContext(context.Background(), `SELECT pg_advisory_unlock(827436701245199)`)
+		_ = lockConnection.Close()
+	})
+	return db
 }

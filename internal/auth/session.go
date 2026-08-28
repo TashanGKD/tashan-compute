@@ -31,9 +31,12 @@ type Session struct {
 }
 
 type SessionCredential struct {
-	SessionID    string
-	RefreshToken string
-	ExpiresAt    time.Time
+	SessionID       string
+	AccountID       string
+	DeviceID        string
+	PasswordVersion int
+	RefreshToken    string
+	ExpiresAt       time.Time
 }
 
 type SessionRepository interface {
@@ -76,7 +79,10 @@ func (manager SessionManager) Issue(ctx context.Context, accountID, deviceID str
 	if err := manager.repository.Create(ctx, session); err != nil {
 		return SessionCredential{}, err
 	}
-	return SessionCredential{SessionID: session.ID, RefreshToken: raw, ExpiresAt: session.ExpiresAt}, nil
+	return SessionCredential{
+		SessionID: session.ID, AccountID: session.AccountID, DeviceID: session.DeviceID,
+		PasswordVersion: session.PasswordVersion, RefreshToken: raw, ExpiresAt: session.ExpiresAt,
+	}, nil
 }
 
 func (manager SessionManager) Refresh(ctx context.Context, raw string) (SessionCredential, error) {
@@ -115,7 +121,10 @@ func (manager SessionManager) Refresh(ctx context.Context, raw string) (SessionC
 		}
 		return SessionCredential{}, err
 	}
-	return SessionCredential{SessionID: next.ID, RefreshToken: nextRaw, ExpiresAt: next.ExpiresAt}, nil
+	return SessionCredential{
+		SessionID: next.ID, AccountID: next.AccountID, DeviceID: next.DeviceID,
+		PasswordVersion: next.PasswordVersion, RefreshToken: nextRaw, ExpiresAt: next.ExpiresAt,
+	}, nil
 }
 
 func (manager SessionManager) newRefreshToken() (string, []byte, error) {

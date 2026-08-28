@@ -25,6 +25,9 @@ func TestRefreshTokenRotatesAndReplayRevokesFamily(t *testing.T) {
 	if first.RefreshToken == second.RefreshToken {
 		t.Fatal("refresh token was not rotated")
 	}
+	if second.AccountID != "account-1" || second.DeviceID != "device-1" || second.PasswordVersion != 1 {
+		t.Fatalf("rotated credential identity = %+v", second)
+	}
 
 	if _, err := manager.Refresh(context.Background(), first.RefreshToken); !errors.Is(err, ErrRefreshReplay) {
 		t.Fatalf("Refresh(replay) error = %v", err)

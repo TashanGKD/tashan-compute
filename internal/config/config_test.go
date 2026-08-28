@@ -34,7 +34,7 @@ func TestProductionRejectsUnsafeOrIncompleteConfiguration(t *testing.T) {
 		{
 			name: "loopback database",
 			values: completeProduction(MapSource{
-				"TCOMPUTE_DATABASE_URL": "postgres://user:pass@127.0.0.1:5432/compute",
+				"TCOMPUTE_DATABASE_URL": "postgres://fixture_user:fixture_password@127.0.0.1:5432/compute",
 			}),
 			message: "production database URL cannot use loopback",
 		},
