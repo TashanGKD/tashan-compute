@@ -67,6 +67,7 @@ func newAuthCommand(dependencies Dependencies) *cobra.Command {
 	_ = loginCommand.MarkFlagRequired("device-label")
 	_ = loginCommand.MarkFlagRequired("device-fingerprint")
 	authCommand.AddCommand(loginCommand)
+	addAuthSessionCommands(authCommand, dependencies)
 	return authCommand
 }
 

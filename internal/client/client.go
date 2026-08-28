@@ -34,16 +34,20 @@ func New(rawBaseURL string, httpClient *http.Client) (*Client, error) {
 
 func (client *Client) Login(ctx context.Context, input httpapi.LoginInput) (httpapi.LoginResult, error) {
 	var result httpapi.LoginResult
-	if err := client.doJSON(ctx, http.MethodPost, "/v1/auth/login", input, &result); err != nil {
+	if err := client.Do(ctx, http.MethodPost, httpapi.RouteLogin, "", input, &result); err != nil {
 		return httpapi.LoginResult{}, err
 	}
 	return result, nil
 }
 
-func (client *Client) doJSON(ctx context.Context, method, path string, input, output any) error {
-	body, err := json.Marshal(input)
-	if err != nil {
-		return fmt.Errorf("encode request: %w", err)
+func (client *Client) Do(ctx context.Context, method, path, accessToken string, input, output any) error {
+	var body []byte
+	var err error
+	if input != nil {
+		body, err = json.Marshal(input)
+		if err != nil {
+			return fmt.Errorf("encode request: %w", err)
+		}
 	}
 	target := client.baseURL.ResolveReference(&url.URL{Path: path})
 	request, err := http.NewRequestWithContext(ctx, method, target.String(), bytes.NewReader(body))
@@ -51,6 +55,9 @@ func (client *Client) doJSON(ctx context.Context, method, path string, input, ou
 		return fmt.Errorf("create request: %w", err)
 	}
 	request.Header.Set("Content-Type", "application/json")
+	if accessToken != "" {
+		request.Header.Set("Authorization", "Bearer "+accessToken)
+	}
 	response, err := client.http.Do(request)
 	if err != nil {
 		return fmt.Errorf("API request failed: %w", err)
@@ -66,6 +73,9 @@ func (client *Client) doJSON(ctx context.Context, method, path string, input, ou
 	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		return fmt.Errorf("API returned HTTP %d", response.StatusCode)
+	}
+	if output == nil || len(contents) == 0 {
+		return nil
 	}
 	decoder := json.NewDecoder(strings.NewReader(string(contents)))
 	decoder.DisallowUnknownFields()

@@ -60,6 +60,31 @@ func (store *AccountStore) updatePasswordAndRevokeSessions(ctx context.Context, 
 	return revoked, nil
 }
 
+func (store *AccountStore) DisableAndRevokeSessions(ctx context.Context, accountID string, now time.Time) (int64, error) {
+	tx, err := store.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	result, err := tx.ExecContext(ctx, `UPDATE accounts SET disabled_at = COALESCE(disabled_at, $1), updated_at = $1 WHERE id = $2`, now, accountID)
+	if err != nil {
+		return 0, err
+	}
+	count, _ := result.RowsAffected()
+	if count != 1 {
+		return 0, identity.ErrAccountNotFound
+	}
+	result, err = tx.ExecContext(ctx, `UPDATE sessions SET revoked_at = COALESCE(revoked_at, $1) WHERE account_id = $2 AND revoked_at IS NULL`, now, accountID)
+	if err != nil {
+		return 0, err
+	}
+	revoked, _ := result.RowsAffected()
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return revoked, nil
+}
+
 func (store *AccountStore) FindByUsername(ctx context.Context, username string) (identity.Account, error) {
 	return store.find(ctx, `WHERE username = $1`, username)
 }

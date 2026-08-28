@@ -11,6 +11,7 @@ import (
 type Dependencies struct {
 	NetworkProbe    func()
 	LoginClient     LoginClient
+	APIClient       APIClient
 	CredentialStore credentials.Store
 	Stdin           io.Reader
 	IsTerminal      func() bool
@@ -31,5 +32,11 @@ func NewRoot(dependencies Dependencies) *cobra.Command {
 	cmd.Version = buildinfo.Version
 	cmd.SetVersionTemplate("{{.Version}}\n")
 	cmd.AddCommand(newAuthCommand(dependencies))
+	cmd.AddCommand(newHealthCommand(dependencies))
+	cmd.AddCommand(newCapabilityCommand(dependencies))
+	cmd.AddCommand(newDeviceCommand(dependencies))
+	cmd.AddCommand(newAdminCommand(dependencies))
+	cmd.AddCommand(newOrganizationCommand(dependencies))
+	cmd.AddCommand(newAuditCommand(dependencies))
 	return cmd
 }

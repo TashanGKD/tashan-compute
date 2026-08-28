@@ -3,13 +3,20 @@ package httpapi
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/TashanGKD/tashan-compute/internal/capability"
 )
 
 type ServerOptions struct {
-	Version        string
-	Authenticator  Authenticator
-	AdminUsers     AdminUserCreator
-	AuthOperations AuthOperations
+	Version                string
+	Capabilities           []capability.Capability
+	Authenticator          Authenticator
+	AdminUsers             AdminUserCreator
+	AuthOperations         AuthOperations
+	DeviceOperations       DeviceOperations
+	PlatformOperations     PlatformOperations
+	OrganizationOperations OrganizationOperations
+	AuditOperations        AuditOperations
 }
 
 func NewServer(options ServerOptions) http.Handler {
@@ -28,5 +35,16 @@ func NewServer(options ServerOptions) http.Handler {
 	mux.HandleFunc("POST /v1/auth/refresh", refreshHandler(options.AuthOperations))
 	mux.HandleFunc("POST /v1/auth/logout", logoutHandler(options.Authenticator, options.AuthOperations))
 	mux.HandleFunc("GET /v1/auth/whoami", whoamiHandler(options.Authenticator))
+	mux.HandleFunc("GET "+RouteCapabilities, capabilitiesHandler(options.Capabilities))
+	mux.HandleFunc("GET "+RouteDevices, devicesHandler(options.Authenticator, options.DeviceOperations))
+	mux.HandleFunc("DELETE "+RouteDevices+"/{deviceID}", deviceRevokeHandler(options.Authenticator, options.DeviceOperations))
+	mux.HandleFunc("POST "+RouteAdminUsers+"/{accountID}/reset-password", adminResetPasswordHandler(options.Authenticator, options.PlatformOperations))
+	mux.HandleFunc("POST "+RouteAdminUsers+"/{accountID}/disable", adminDisableUserHandler(options.Authenticator, options.PlatformOperations))
+	mux.HandleFunc("POST "+RouteAdminOrganizations, adminCreateOrganizationHandler(options.Authenticator, options.PlatformOperations))
+	mux.HandleFunc("GET "+RouteOrganizations, organizationsHandler(options.Authenticator, options.OrganizationOperations))
+	mux.HandleFunc("POST "+RouteOrganizations+"/{orgID}/members", membershipHandler(options.Authenticator, options.OrganizationOperations, "add"))
+	mux.HandleFunc("DELETE "+RouteOrganizations+"/{orgID}/members", membershipHandler(options.Authenticator, options.OrganizationOperations, "remove"))
+	mux.HandleFunc("PATCH "+RouteOrganizations+"/{orgID}/members", membershipHandler(options.Authenticator, options.OrganizationOperations, "role-set"))
+	mux.HandleFunc("GET "+RouteAudit, auditListHandler(options.Authenticator, options.AuditOperations))
 	return mux
 }

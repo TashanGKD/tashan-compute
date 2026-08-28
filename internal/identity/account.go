@@ -40,3 +40,15 @@ type Device struct {
 	LastSeenAt  time.Time
 	RevokedAt   *time.Time
 }
+
+type Organization struct {
+	ID   string
+	Name string
+	Role string
+}
+
+type Membership struct {
+	OrganizationID string
+	AccountID      string
+	Role           string
+}

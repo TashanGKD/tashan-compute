@@ -47,7 +47,7 @@ func runtimeDependencies() (cli.Dependencies, error) {
 		store = credentials.NewMemoryStore()
 	}
 	return cli.Dependencies{
-		LoginClient: api, CredentialStore: store, Stdin: os.Stdin,
+		LoginClient: api, APIClient: api, CredentialStore: store, Stdin: os.Stdin,
 		IsTerminal: func() bool { return term.IsTerminal(int(os.Stdin.Fd())) },
 		ReadPassword: func(prompt string) (string, error) {
 			fmt.Fprint(os.Stderr, prompt)

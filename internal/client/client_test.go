@@ -57,3 +57,23 @@ func TestClientRejectsNonHTTPBaseURLAndOversizedResponse(t *testing.T) {
 		t.Fatal("Login() accepted oversized response")
 	}
 }
+
+func TestDoSendsBearerTokenAndDecodesStableJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if request.Header.Get("Authorization") != "Bearer fixture-access" {
+			t.Fatalf("Authorization = %q", request.Header.Get("Authorization"))
+		}
+		_ = json.NewEncoder(writer).Encode(map[string]bool{"ok": true})
+	}))
+	defer server.Close()
+	api, _ := New(server.URL, server.Client())
+	var output struct {
+		OK bool `json:"ok"`
+	}
+	if err := api.Do(t.Context(), http.MethodGet, "/v1/example", "fixture-access", nil, &output); err != nil {
+		t.Fatalf("Do() error = %v", err)
+	}
+	if !output.OK {
+		t.Fatal("Do() did not decode response")
+	}
+}

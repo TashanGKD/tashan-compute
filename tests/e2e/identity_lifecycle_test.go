@@ -50,14 +50,20 @@ func TestTwoManagedUsersCompleteIndependentPasswordLifecycles(t *testing.T) {
 		auth.NewAccessTokenVerifier(publicKey, "tashan-compute", "tcompute", now),
 		store.NewPrincipalStore(db),
 	)
+	organizationOperations := app.NewOrganizationOperations(store.NewOrganizationStore(db))
+	platformOperations := app.NewPlatformOperations(accounts, hasher, organizationOperations, now)
 	handler := httpapi.NewServer(httpapi.ServerOptions{
 		Version: "test", Authenticator: authenticator, AuthOperations: operations,
-		AdminUsers: app.NewAdminUsers(authService),
+		AdminUsers: app.NewAdminUsers(authService), PlatformOperations: platformOperations,
+		OrganizationOperations: organizationOperations,
+		DeviceOperations:       app.NewDeviceOperations(store.NewDeviceStore(db), now),
 	})
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
 	admin := login(t, server.URL, "root", "platform admin fixture password", "admin-device")
+	accountIDs := map[string]string{}
+	permanentTokens := map[string]string{}
 	for _, username := range []string{"alice", "bob"} {
 		response := requestJSON(t, http.MethodPost, server.URL+"/v1/admin/users", admin.AccessToken, map[string]any{
 			"username": username, "initial_password": username + " initial fixture password",
@@ -65,6 +71,11 @@ func TestTwoManagedUsersCompleteIndependentPasswordLifecycles(t *testing.T) {
 		if response.Code != http.StatusCreated {
 			t.Fatalf("create %s status=%d body=%s", username, response.Code, response.Body.String())
 		}
+		var created httpapi.AdminUserResult
+		if err := json.Unmarshal(response.Body.Bytes(), &created); err != nil {
+			t.Fatalf("decode created user: %v", err)
+		}
+		accountIDs[username] = created.AccountID
 		initial := login(t, server.URL, username, username+" initial fixture password", username+"-device")
 		if !initial.MustChangePassword {
 			t.Fatalf("%s did not require initial password change", username)
@@ -84,10 +95,31 @@ func TestTwoManagedUsersCompleteIndependentPasswordLifecycles(t *testing.T) {
 		if permanent.MustChangePassword {
 			t.Fatalf("%s permanent login still requires change", username)
 		}
+		permanentTokens[username] = permanent.AccessToken
 		whoami := requestJSON(t, http.MethodGet, server.URL+"/v1/auth/whoami", permanent.AccessToken, nil)
 		if whoami.Code != http.StatusOK {
 			t.Fatalf("whoami %s status=%d body=%s", username, whoami.Code, whoami.Body.String())
 		}
+	}
+
+	organizationResponse := requestJSON(t, http.MethodPost, server.URL+httpapi.RouteAdminOrganizations, admin.AccessToken, map[string]string{"name": "research-team"})
+	if organizationResponse.Code != http.StatusCreated {
+		t.Fatalf("create organization status=%d body=%s", organizationResponse.Code, organizationResponse.Body.String())
+	}
+	var organization httpapi.OrganizationResult
+	_ = json.Unmarshal(organizationResponse.Body.Bytes(), &organization)
+	memberResponse := requestJSON(t, http.MethodPost, server.URL+httpapi.RouteOrganizations+"/"+organization.OrganizationID+"/members", admin.AccessToken, map[string]string{"account_id": accountIDs["alice"], "role": "developer"})
+	if memberResponse.Code != http.StatusOK {
+		t.Fatalf("add member status=%d body=%s", memberResponse.Code, memberResponse.Body.String())
+	}
+
+	resetResponse := requestJSON(t, http.MethodPost, server.URL+httpapi.RouteAdminUsers+"/"+accountIDs["bob"]+"/reset-password", admin.AccessToken, map[string]string{"initial_password": "bob reset fixture password"})
+	if resetResponse.Code != http.StatusOK {
+		t.Fatalf("reset bob status=%d body=%s", resetResponse.Code, resetResponse.Body.String())
+	}
+	oldBob := requestJSON(t, http.MethodGet, server.URL+httpapi.RouteWhoAmI, permanentTokens["bob"], nil)
+	if oldBob.Code != http.StatusUnauthorized {
+		t.Fatalf("bob token survived admin reset: %d", oldBob.Code)
 	}
 }
 
