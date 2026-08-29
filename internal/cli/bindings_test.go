@@ -18,7 +18,7 @@ func TestCommandTreeCoversEveryCapabilityBinding(t *testing.T) {
 		t.Fatalf("Unmarshal(bindings.json) error = %v", err)
 	}
 	commands := make(map[string]struct{})
-	root := NewRoot(Dependencies{})
+	root := NewRoot(Dependencies{CoderRunner: &fixtureCoderRunner{}})
 	var visit func(prefix string, commandNames []string)
 	visit = func(prefix string, commandNames []string) {
 		for _, name := range commandNames {

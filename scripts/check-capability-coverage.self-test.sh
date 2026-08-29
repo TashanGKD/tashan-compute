@@ -31,7 +31,7 @@ perl -0pi -e 's/^\s*"admin\.user\.create"[^\n]*\n//m' "$fixture_root/internal/cl
 run_gate_expect_failure "missing CLI binding: admin.user.create"
 
 copy_fixture
-perl -0pi -e 's/"audit\.list"/"audit.lits"/' "$fixture_root/skill/tashan-compute/capability-references.json"
-run_gate_expect_failure "unknown Skill capability: audit.lits"
+perl -0pi -e 's/"service\.public"/"service.pubic"/' "$fixture_root/skill/tashan-compute/capability-references.json"
+run_gate_expect_failure "unknown Skill capability: service.pubic"
 
 echo "check-capability-coverage self-test: PASS"

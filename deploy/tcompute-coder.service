@@ -1,0 +1,25 @@
+[Unit]
+Description=Tashan Compute Coder control plane
+After=network-online.target docker.service incus.socket
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tcompute
+Group=tcompute
+SupplementaryGroups=incus
+Environment=HOME=/var/lib/tcompute
+Environment=TF_PLUGIN_CACHE_DIR=/var/lib/tcompute/terraform-plugin-cache
+EnvironmentFile=/etc/tashan-compute/coder.env
+ExecStart=/var/lib/tcompute/bin/coder server
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/tcompute
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

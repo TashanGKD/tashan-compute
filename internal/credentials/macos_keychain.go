@@ -2,9 +2,13 @@ package credentials
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"strings"
 )
+
+const macOSKeychainEncodingPrefix = "go-keyring-base64:"
 
 type MacOSKeychainStore struct {
 	runner CommandRunner
@@ -21,7 +25,9 @@ func (store *MacOSKeychainStore) Save(ctx context.Context, label, secret string)
 	if err := validateSecret(secret); err != nil {
 		return err
 	}
-	result, err := store.runner.Run(ctx, "/usr/bin/security", []string{"add-generic-password", "-U", "-a", label, "-s", serviceName, "-w"}, secret)
+	encoded := macOSKeychainEncodingPrefix + base64.StdEncoding.EncodeToString([]byte(secret))
+	interactiveCommand := fmt.Sprintf("add-generic-password -U -a %s -s %s -w %s\n", label, serviceName, encoded)
+	result, err := store.runner.Run(ctx, "/usr/bin/security", []string{"-i"}, interactiveCommand)
 	if err != nil {
 		return err
 	}
@@ -45,7 +51,15 @@ func (store *MacOSKeychainStore) Load(ctx context.Context, label string) (string
 	if result.ExitCode != 0 {
 		return "", false, errors.New("macOS Keychain read failed")
 	}
-	return strings.TrimRight(result.Stdout, "\r\n"), true, nil
+	value := strings.TrimRight(result.Stdout, "\r\n")
+	if strings.HasPrefix(value, macOSKeychainEncodingPrefix) {
+		decoded, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, macOSKeychainEncodingPrefix))
+		if err != nil {
+			return "", false, errors.New("macOS Keychain value is invalid")
+		}
+		value = string(decoded)
+	}
+	return value, true, nil
 }
 
 func (store *MacOSKeychainStore) Delete(ctx context.Context, label string) error {

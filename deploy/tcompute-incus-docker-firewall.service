@@ -1,0 +1,13 @@
+[Unit]
+Description=Tashan Compute Docker and Incus forwarding compatibility
+After=docker.service incus.service
+Requires=docker.service incus.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/tashan-compute/tcompute-incus-docker-firewall.sh --apply
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

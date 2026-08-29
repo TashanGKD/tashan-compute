@@ -29,11 +29,11 @@ func TestMacOSKeychainWritesSecretThroughStdinNotArguments(t *testing.T) {
 	if strings.Contains(strings.Join(runner.args, " "), "fixture-secret") {
 		t.Fatalf("secret leaked into argv: %v", runner.args)
 	}
-	if runner.stdin != "fixture-secret" {
-		t.Fatalf("stdin = %q", runner.stdin)
+	if strings.Contains(runner.stdin, "fixture-secret") || !strings.Contains(runner.stdin, "go-keyring-base64:") {
+		t.Fatalf("stdin is not encoded security interactive input: %q", runner.stdin)
 	}
-	if len(runner.args) == 0 || runner.args[len(runner.args)-1] != "-w" {
-		t.Fatalf("security -w is not final argument: %v", runner.args)
+	if len(runner.args) != 1 || runner.args[0] != "-i" {
+		t.Fatalf("security interactive mode not used: %v", runner.args)
 	}
 }
 

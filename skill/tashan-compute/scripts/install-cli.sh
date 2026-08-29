@@ -125,6 +125,7 @@ esac
 
 target="$bin_directory/tcompute"
 managed_target="$install_root/current/bin/tcompute"
+managed_coder="$install_root/current/bin/coder"
 if [ -e "$target" ] || [ -L "$target" ]; then
   if [ ! -L "$target" ] || [ "$(readlink "$target")" != "$managed_target" ]; then
     fail "refusing to replace unmanaged tcompute at $target"
@@ -134,6 +135,8 @@ fi
 if [ "$mode" = check ]; then
   [ -L "$target" ] || fail 'tcompute is not installed by this installer'
   installed_version=$($target --version 2>/dev/null) || fail 'installed tcompute failed its version check'
+  [ -x "$managed_coder" ] || fail 'bundled Coder CLI is missing'
+  "$managed_coder" version >/dev/null 2>&1 || fail 'bundled Coder CLI failed its version check'
   printf 'tcompute %s is installed at %s\n' "$installed_version" "$target"
   exit 0
 fi
@@ -175,7 +178,7 @@ fi
 actual_entries="$temporary_root/actual-entries"
 expected_entries="$temporary_root/expected-entries"
 tar -tzf "$archive" | LC_ALL=C sort >"$actual_entries"
-printf '%s\n' "$top_level/" "$top_level/VERSION" "$top_level/bin/" "$top_level/bin/tcompute" | LC_ALL=C sort >"$expected_entries"
+printf '%s\n' "$top_level/" "$top_level/VERSION" "$top_level/bin/" "$top_level/bin/tcompute" "$top_level/bin/coder" | LC_ALL=C sort >"$expected_entries"
 cmp -s "$actual_entries" "$expected_entries" || fail 'invalid archive layout'
 
 mkdir -p "$install_root/versions" "$bin_directory"
@@ -186,8 +189,10 @@ mkdir "$staging_root"
 tar -xzf "$archive" -C "$staging_root"
 candidate="$staging_root/$top_level"
 [ -x "$candidate/bin/tcompute" ] || fail 'invalid archive layout'
+[ -x "$candidate/bin/coder" ] || fail 'bundled Coder CLI is missing'
 [ "$(cat "$candidate/VERSION")" = "$version" ] || fail 'archive version mismatch'
 [ "$($candidate/bin/tcompute --version 2>/dev/null || true)" = "$version" ] || fail 'installed CLI smoke test failed'
+"$candidate/bin/coder" version >/dev/null 2>&1 || fail 'bundled Coder CLI failed its version check'
 
 mv "$candidate" "$version_directory"
 rm -rf -- "$staging_root"

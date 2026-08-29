@@ -1,7 +1,9 @@
 # Safety boundaries
 
-The public repository contains no account, password, Token, signing key, database credential, object-storage credential, deployment key or AUP SSH access.
-
-Require explicit confirmation for permanent deletion, overwrite, service publication, database restore, Secret grants and administrator mutations. `service public` means anonymous internet users can access the service.
-
-Reject any workflow that attempts to bypass the API through SSH, Tailscale, a host shell, Docker socket, host port mapping or direct object-storage credentials. A missing capability is an implementation gap, not permission to bypass the platform boundary.
+- A workspace root user maps to a non-root host UID. Host/private/cloud-metadata networks and host Docker/Incus sockets are blocked; public Internet egress is allowed.
+- Use `/home/coder` for persistent files. Paths outside it are ephemeral container state and disappear when compute is recreated.
+- `workspace delete` is permanent and requires the exact target plus `--yes`.
+- `sync` never enables `--delete`; it dry-runs unless `--apply` is explicit.
+- Removing a shared member automatically restarts the workspace so revocation takes effect immediately.
+- `service private` requires owner login, `service authenticated` requires a platform login, and `service public` permits anonymous Internet access.
+- Never substitute AUP SSH, Tailscale, an Incus socket, a host path or a Docker socket for a missing product command.

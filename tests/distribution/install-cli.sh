@@ -31,6 +31,8 @@ make_fixture() {
     printf '%s\n' '#!/bin/sh' 'case "${1-}" in' "  --version) printf '%s\\n' '$version' ;;" "  '') printf '%s\\n' 'Usage: tcompute' ;;" 'esac' >"$package/bin/tcompute"
   fi
   chmod +x "$package/bin/tcompute"
+  printf '%s\n' '#!/bin/sh' 'echo Coder v2.35.6' >"$package/bin/coder"
+  chmod +x "$package/bin/coder"
   if [ "$mode" = symlink ]; then
     rm "$package/bin/tcompute"
     ln -s /bin/sh "$package/bin/tcompute"
@@ -88,7 +90,7 @@ assert_fails_with() {
   fi
 }
 
-version=0.1.0-alpha.1
+version=0.2.0
 platform=darwin-arm64
 valid_release=$(make_fixture "$version" "$platform")
 home=$(new_home valid)
