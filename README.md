@@ -1,91 +1,82 @@
 # Tashan Compute
 
-> 通过 Skill 与 CLI 使用个人空间、组织共享空间和隔离计算资源的独立远程计算平台。
+独立的多人远程计算平台：用户从公开 Skill 安装 `tcompute`，用管理员创建的账号登录，在 AUP 上创建个人空间或共享空间、同步文件、获得完整隔离 Linux Shell、运行语言工具链/数据库/daemon，并按需开放 HTTPS 服务。
 
-## 当前状态
+## 已部署入口
 
-安全地基已经实现：管理员托管账号、首次改密、多设备会话、组织成员角色、审计、API、CLI 命令树、公开 Skill、固定版本安装器和 CI 门禁均已有可运行代码与测试。个人/组织文件空间和计算执行器尚未实现；当前版本不得宣称完整产品可用。
+- 控制面与登录：<https://compute.tashan.chat>
+- Workspace HTTPS：`*.workspaces.compute.tashan.chat`
+- Coder OSS：v2.35.6
+- Incus：6.0 LTS，非特权 user namespace
 
-## 公开仓库与访问权限
+普通用户不需要也不会获得 Tailscale、AUP SSH、Incus socket、宿主 Docker socket或宿主路径。公开仓库本身不授予账号或管理员身份。
 
-本仓库公开是为了让任何用户和 AI Agent 都能审查源码、安装 `tashan-compute` Skill，并由 Skill 安装 `tcompute` CLI。公开源码不授予任何平台账号、管理员角色或 AUP 访问权。
+## 从 Skill 安装
 
-- 没有平台管理员创建的用户名和初始密码，CLI 不能登录或调用受保护能力。
-- 管理员角色只由服务器数据库中的授权记录决定；本地参数、环境变量、修改 CLI 源码或自行签发 Token 都不能产生管理员身份。
-- 仓库不保存账号、初始密码、Token、签名密钥、数据库/对象存储凭据、AUP SSH 信息或生产部署密钥。
-- AUP 不向最终用户开放 SSH。用户只能通过公开 HTTPS API 和服务端验证的设备 Token 操作被授权空间。
-
-安全边界与漏洞报告方式见 [`SECURITY.md`](SECURITY.md)。
-
-## 快速开始
-
-### 前置条件
-
-- Go 1.26
-- Docker 29+ 与 Docker Compose 5+
-
-### 本地验证
+把仓库中的 `skill/tashan-compute` 安装为 Codex Skill，然后由 Skill 执行：
 
 ```bash
-docker compose -f compose.test.yml up -d postgres redis
-bash scripts/verify-foundation.sh
-docker compose -f compose.test.yml down --volumes
+bash scripts/install-cli.sh --check
+bash scripts/install-cli.sh --install
+tcompute login --email you@tashan.chat
 ```
 
-当前尚未发布 GitHub CLI Release。仓库中的安装器只用于本地分发测试；在 Release 资产和生产健康门禁完成前，不应引导外部用户执行安装。
+安装器默认不做任何修改；`--install` 下载带 SHA256 的 v0.2.0 包。每个平台包同时含 `tcompute` 与固定 Coder CLI，不要求用户安装 Go、Node、Docker 或 Tailscale。账号只能由平台管理员创建。
 
-## 常用命令
+## CLI 闭环
 
-| 命令 | 用途 |
-| --- | --- |
-| `bash scripts/verify-foundation.sh` | 运行单元、集成、E2E、分发和安全门禁 |
-| `go run ./cmd/tcompute` | 仅显示本地 CLI 帮助，不联网 |
-| `go run ./cmd/tcompute-api` | 仅显示 API 服务帮助，不加载配置 |
-| `go run ./cmd/tcompute-api serve` | 显式启动已配置的本地 API |
-| `go run ./cmd/tcompute-admin bootstrap --username <name>` | 在服务器本地直连数据库创建首位管理员 |
-| `bash tests/distribution/build-cli-release.sh` | 验证三平台 CLI Release 构建 |
-| `bash tests/distribution/install-cli.sh` | 验证空用户安装、升级和失败回滚 |
+```bash
+# 个人空间
+tcompute personal create my-space
+tcompute workspace list
+tcompute shell my-space
 
-## 产品边界
+# 组织共享空间
+tcompute org create shared-lab
+tcompute org member add shared-lab bob
+tcompute org list
+tcompute shell alice/shared-lab
 
-- 用户通过 `tashan-compute` Skill 安装并调用单文件 `tcompute` CLI。
-- 用户无需 Tailscale，通过公网 HTTPS API 登录并操作 AUP 上被授权的空间和计算资源。
-- 平台支持个人空间、组织空间、版本化文件、不可变运行快照、Secret、批处理、构建、Web 服务、数据库和 daemon。
-- 本项目不包含 OKR、待办、审批、短信、聊天、会议或 AI 员工。
-- 本项目不依赖旧 OrgSpace 的源码包、数据库、账号、API、部署或运行状态。
+# 文件：默认 dry-run，确认后才传输
+tcompute sync push shared-lab ./code project
+tcompute sync push shared-lab ./code project --apply
+tcompute sync pull shared-lab ./results project/results --apply
 
-## 目录结构
+# 计算容器内
+tcompute shell shared-lab -- python3 script.py
+tcompute shell shared-lab -- docker build -t experiment .
 
-```text
-docs/
-  superpowers/
-    specs/       已确认的产品与技术规格
-    plans/       分阶段实施计划
-cmd/             CLI、API 和服务器本地管理员入口
-internal/        认证、授权、存储、HTTP、CLI 与应用服务
-migrations/      带 SHA-256 防漂移的 PostgreSQL 迁移
-capabilities/    API/CLI/Skill 能力真源
-skill/           可公开安装的 Codex Skill
-scripts/         验证、构建与一致性门禁
-tests/           双用户 E2E 与分发测试
+# HTTPS 服务，默认需要 owner 登录
+tcompute service private shared-lab
+tcompute service authenticated shared-lab
+tcompute service public shared-lab   # 明确开放匿名互联网访问
 ```
 
-代码目录、常用命令、本地启动方式和环境变量会由实施计划确定，并与首个可运行纵向切片同时加入，避免在实现前声明不存在的接口或命令。
+持久文件位于 `/home/coder`，默认 50 GiB。计算容器停止时可销毁并快速重建，但 home volume 保留。预装 Python、Node.js、Go、Rust、C/C++、PostgreSQL、Redis、Podman/Buildah，并提供 Docker-compatible `docker build`。
 
-## 关键文档
+把可执行启动器放在 `/home/coder/.tcompute/service`，常驻进程会随工作空间启动恢复；端口 8000 自动获得 HTTPS workspace hostname。成员移除后 CLI 自动重启空间，使撤权立即生效。
 
-| 文档 | 用途 |
-| --- | --- |
-| [`docs/superpowers/specs/2026-08-29-tashan-compute-design.md`](docs/superpowers/specs/2026-08-29-tashan-compute-design.md) | 已确认的独立产品与技术设计 |
-| [`docs/superpowers/plans/2026-08-29-foundation-auth-distribution.md`](docs/superpowers/plans/2026-08-29-foundation-auth-distribution.md) | 安全地基、认证和公开分发实施计划 |
-| [`docs/verification/2026-08-29-foundation.md`](docs/verification/2026-08-29-foundation.md) | 当前验证证据与未完成边界 |
+## 安全与资源边界
 
-## 环境变量
+- Workspace root 映射为宿主非 root UID。
+- 标准限制：4 CPU、8 GiB RAM、2048 pids、50 GiB persistent home；可在模板允许范围内调整 CPU/RAM。
+- 用户总池上限：30 CPU、48 GiB RAM、700 GiB；宿主保留平台与应急资源。
+- 拒绝宿主、RFC1918/CGNAT、链路本地和云元数据访问；允许公网出站。
+- HTTPS 服务默认 owner 登录；`service public` 才允许匿名访问。
+- `sync` 默认 dry-run且无 `--delete`；`workspace delete` 必须显式 `--yes`。
 
-阅读仓库和未来安装客户端不需要环境变量。`tcompute-api serve` 使用 `.env.example` 中列出的变量，包括 PostgreSQL、Redis、Ed25519 密钥文件、Refresh Pepper、可信代理和 CORS 来源。真实值不得提交；三个 Secret 文件必须是非符号链接、权限不超过 `0600`，内容为固定长度随机字节的 Base64。
+## 开发与验证
 
-## 部署边界
+```bash
+go test ./...
+bash scripts/check-capability-coverage.self-test.sh
+bash scripts/check-release-contract.self-test.sh
+bash deploy/check-coder-stack.self-test.sh
+bash deploy/configure-incus.self-test.sh
+bash deploy/verify-incus-isolation.self-test.sh
+bash deploy/check-public-network.self-test.sh
+bash tests/distribution/build-cli-release.sh
+bash tests/distribution/install-cli.sh
+```
 
-生产部署必须使用独立目录、端口、数据库、对象存储命名空间、容器、域名入口、Secret 和回滚记录，不影响任何既有他山项目。
-
-当前尚未部署到 AUP，也未配置生产域名、GitHub Release 或真实用户账号。
+架构与部署计划见 [`docs/superpowers/specs/2026-08-29-coder-incus-design.md`](docs/superpowers/specs/2026-08-29-coder-incus-design.md) 和 [`docs/superpowers/plans/2026-08-29-coder-incus-deployment.md`](docs/superpowers/plans/2026-08-29-coder-incus-deployment.md)。安全报告方式见 [`SECURITY.md`](SECURITY.md)。
