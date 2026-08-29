@@ -83,12 +83,12 @@ func TestCoderCommandsDelegateExactArgv(t *testing.T) {
 		args []string
 		want []string
 	}{
-		{args: []string{"shell", "personal-a", "--", "printf", "%s", "hello;touch /tmp/pwn"}, want: []string{"ssh", "personal-a", "--", "printf", "%s", "hello;touch /tmp/pwn"}},
+		{args: []string{"shell", "personal-a", "--", "printf", "%s", "hello;touch /tmp/pwn"}, want: []string{"ssh", "personal-a", "--", "'printf' '%s' 'hello;touch /tmp/pwn'"}},
 		{args: []string{"personal", "create", "space-a"}, want: []string{"create", "space-a", "--template", "tcompute-standard", "--use-parameter-defaults", "--yes"}},
 		{args: []string{"workspace", "list"}, want: []string{"list", "--output", "json"}},
 		{args: []string{"org", "list"}, want: []string{"list", "--search", "shared:true", "--output", "json"}},
 		{args: []string{"org", "create", "org-a", "--admin", "alice"}, want: []string{"sharing", "add", "org-a", "--user", "alice:admin"}},
-		{args: []string{"shell", "alice/shared-a", "--", "true"}, want: []string{"ssh", "alice/shared-a", "--", "true"}},
+		{args: []string{"shell", "alice/shared-a", "--", "python3", "-c", "print('ok')"}, want: []string{"ssh", "alice/shared-a", "--", "'python3' '-c' 'print('\"'\"'ok'\"'\"')'"}},
 		{args: []string{"workspace", "stop", "space-a"}, want: []string{"stop", "space-a", "--yes"}},
 		{args: []string{"org", "member", "add", "shared-a", "bob"}, want: []string{"sharing", "add", "shared-a", "--user", "bob"}},
 		{args: []string{"org", "member", "remove", "shared-a", "bob"}, want: []string{"restart", "shared-a", "--yes"}},

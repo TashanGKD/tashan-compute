@@ -30,7 +30,7 @@ perl -0pi -e 's/TashanGKD\/tashan-compute/TashanGKD\/wrong-repository/' "$fixtur
 expect_failure 'release metadata drift'
 
 copy_fixture
-perl -0pi -e 's/tcompute-v0\.2\.0-linux-x64/tcompute-wrong-linux-x64/' "$fixture/release/cli-release.json"
+perl -0pi -e 's/tcompute-v0\.2\.1-linux-x64/tcompute-wrong-linux-x64/' "$fixture/release/cli-release.json"
 expect_failure 'asset name mismatch: linux-x64'
 
 echo "check-release-contract self-test: PASS"
