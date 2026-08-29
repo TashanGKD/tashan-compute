@@ -1,0 +1,22 @@
+[Unit]
+Description=Tashan Compute Coder reverse tunnel to ECS
+After=network-online.target tcompute-coder.service
+Wants=network-online.target
+Requires=tcompute-coder.service
+
+[Service]
+Type=simple
+User=aup
+Group=aup
+Environment=AUTOSSH_GATETIME=0
+ExecStart=/usr/bin/autossh -M 0 -N -o BatchMode=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o StrictHostKeyChecking=yes -i /home/aup/.ssh/tashan_tunnel -R 127.0.0.1:13980:127.0.0.1:7080 root@101.200.234.115
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadOnlyPaths=/home/aup/.ssh
+
+[Install]
+WantedBy=multi-user.target

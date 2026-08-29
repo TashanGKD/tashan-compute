@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: docker.m.daocloud.io/library/postgres:17.6-alpine3.22@sha256:ef257d85f76e48da1c64832459b59fcaba1a4dac97bf5d7450c77753542eee94
+    container_name: tcompute-coder-postgres
+    restart: unless-stopped
+    env_file:
+      - ./secrets/postgres.env
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coder -d coder"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
