@@ -34,6 +34,7 @@ for required in \
   'User=root' \
   'CODER_AGENT_TOKEN_FILE=/etc/tcompute-agent-token' \
   'ConditionPathIsExecutable=/home/coder/.tcompute/service' \
+  'location = "docker.m.daocloud.io"' \
   'Restart=always' \
   'target_path = "/etc/tcompute-agent-token"' \
   'mode        = "0600"' \

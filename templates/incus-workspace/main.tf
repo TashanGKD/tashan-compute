@@ -280,6 +280,22 @@ resource "incus_instance" "workspace" {
   }
 
   file {
+    target_path        = "/etc/containers/registries.conf.d/010-tcompute.conf"
+    create_directories = true
+    uid                = 0
+    gid                = 0
+    mode               = "0644"
+    content            = <<-CONF
+      [[registry]]
+      prefix = "docker.io"
+      location = "docker.io"
+
+      [[registry.mirror]]
+      location = "docker.m.daocloud.io"
+    CONF
+  }
+
+  file {
     target_path = "/etc/systemd/system/tcompute-coder-agent.service"
     uid         = 0
     gid         = 0
