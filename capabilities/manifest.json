@@ -10,7 +10,7 @@
   {"id":"workspace.stop","version":1,"cli":"workspace stop","auth":"user","side_effect":"write"},
   {"id":"workspace.delete","version":1,"cli":"workspace delete","auth":"user","side_effect":"revoke"},
   {"id":"workspace.shell","version":1,"cli":"shell","auth":"user","side_effect":"write"},
-  {"id":"organization.workspace.create","version":1,"cli":"org create","auth":"user","side_effect":"write"},
+  {"id":"organization.workspace.create","version":2,"cli":"org create","auth":"platform_admin","side_effect":"write"},
   {"id":"organization.list","version":2,"cli":"org list","auth":"user","side_effect":"none"},
   {"id":"organization.member.add","version":2,"cli":"org member add","auth":"org_admin","side_effect":"write"},
   {"id":"organization.member.remove","version":2,"cli":"org member remove","auth":"org_admin","side_effect":"revoke"},

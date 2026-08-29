@@ -14,6 +14,9 @@ func TestClientLoginAndMe(t *testing.T) {
 		if got := r.Header.Get("Content-Type"); got != "application/json" {
 			t.Fatalf("content type = %q", got)
 		}
+		if r.UserAgent() == "" || r.Header.Get("X-Tcompute-OS") == "" || r.Header.Get("X-Tcompute-Arch") == "" || r.Header.Get("X-Tcompute-Device") == "" {
+			t.Fatal("device audit headers are missing")
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"session_token":"session-secret"}`))
 	})

@@ -33,6 +33,16 @@ func TestSyncDefaultsToDryRunAndNeverDeletes(t *testing.T) {
 	if strings.Contains(rsync, "--delete") {
 		t.Fatalf("rsync contains delete: %s", rsync)
 	}
+	if !strings.Contains(rsync, " -- /tmp/source tcompute-sync:/home/coder/project") {
+		t.Fatalf("rsync has no option terminator: %s", rsync)
+	}
+}
+
+func TestSyncRejectsLeadingDashLocalPath(t *testing.T) {
+	runner := Runner{Binary: "/opt/tcompute/coder", Executor: &multiCaptureExecutor{}, BaseURL: "https://compute.tashan.chat"}
+	if err := runner.Sync(context.Background(), "token", SyncRequest{Direction: "push", Workspace: "space-a", LocalPath: "--delete", RemotePath: "project"}, &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
+		t.Fatal("leading-dash local path accepted")
+	}
 }
 
 func TestSyncRejectsRemotePathEscapes(t *testing.T) {

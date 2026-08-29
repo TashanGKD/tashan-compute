@@ -10,7 +10,11 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"runtime"
 	"strings"
+
+	"github.com/TashanGKD/tashan-compute/internal/buildinfo"
 )
 
 const maxResponseBytes = 1 << 20
@@ -135,6 +139,24 @@ func (client *Client) do(ctx context.Context, method, path, token string, input,
 	if err != nil {
 		return errors.New("create Coder request")
 	}
+	hostname, _ := os.Hostname()
+	hostname = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return -1
+		}
+		return r
+	}, hostname)
+	if len(hostname) > 128 {
+		hostname = hostname[:128]
+	}
+	if hostname == "" {
+		hostname = "unknown"
+	}
+	request.Header.Set("User-Agent", "tcompute/"+buildinfo.Version+" ("+runtime.GOOS+"; "+runtime.GOARCH+")")
+	request.Header.Set("X-Tcompute-CLI-Version", buildinfo.Version)
+	request.Header.Set("X-Tcompute-OS", runtime.GOOS)
+	request.Header.Set("X-Tcompute-Arch", runtime.GOARCH)
+	request.Header.Set("X-Tcompute-Device", hostname)
 	if input != nil {
 		request.Header.Set("Content-Type", "application/json")
 	}

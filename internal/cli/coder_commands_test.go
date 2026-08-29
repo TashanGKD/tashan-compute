@@ -23,7 +23,11 @@ func (client *fixtureCoderClient) Login(_ context.Context, email, password strin
 	return "coder-session-secret", nil
 }
 func (*fixtureCoderClient) Me(context.Context, string) (codercli.User, error) {
-	return codercli.User{Username: "alice", Email: "alice@example.test", Status: "active"}, nil
+	user := codercli.User{Username: "alice", Email: "alice@example.test", Status: "active"}
+	user.Roles = append(user.Roles, struct {
+		Name string `json:"name"`
+	}{Name: "owner"})
+	return user, nil
 }
 func (client *fixtureCoderClient) Logout(_ context.Context, token string) error {
 	client.logoutToken = token
@@ -83,6 +87,7 @@ func TestCoderCommandsDelegateExactArgv(t *testing.T) {
 		{args: []string{"personal", "create", "space-a"}, want: []string{"create", "space-a", "--template", "tcompute-standard", "--use-parameter-defaults", "--yes"}},
 		{args: []string{"workspace", "list"}, want: []string{"list", "--output", "json"}},
 		{args: []string{"org", "list"}, want: []string{"list", "--search", "shared:true", "--output", "json"}},
+		{args: []string{"org", "create", "org-a", "--admin", "alice"}, want: []string{"sharing", "add", "org-a", "--user", "alice:admin"}},
 		{args: []string{"shell", "alice/shared-a", "--", "true"}, want: []string{"ssh", "alice/shared-a", "--", "true"}},
 		{args: []string{"workspace", "stop", "space-a"}, want: []string{"stop", "space-a", "--yes"}},
 		{args: []string{"org", "member", "add", "shared-a", "bob"}, want: []string{"sharing", "add", "shared-a", "--user", "bob"}},
@@ -95,7 +100,7 @@ func TestCoderCommandsDelegateExactArgv(t *testing.T) {
 			store := credentials.NewMemoryStore()
 			_ = store.Save(context.Background(), coderSessionCredentialLabel, "coder-session-secret")
 			runner := &fixtureCoderRunner{}
-			cmd := NewRoot(Dependencies{CoderRunner: runner, CredentialStore: store, Stdin: strings.NewReader("")})
+			cmd := NewRoot(Dependencies{CoderClient: &fixtureCoderClient{}, CoderRunner: runner, CredentialStore: store, Stdin: strings.NewReader("")})
 			cmd.SetArgs(tc.args)
 			cmd.SetOut(&bytes.Buffer{})
 			cmd.SetErr(&bytes.Buffer{})

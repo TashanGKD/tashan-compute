@@ -161,12 +161,43 @@ func newCoderOrganizationCommand(dependencies Dependencies) *cobra.Command {
 	root.AddCommand(delegatedCoderCommand(dependencies, "list", "List shared organization workspaces", cobra.NoArgs, func([]string) ([]string, error) {
 		return []string{"list", "--search", "shared:true", "--output", "json"}, nil
 	}))
-	root.AddCommand(&cobra.Command{Use: "create <name>", Short: "Create a shared workspace", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+	var organizationAdmin string
+	create := &cobra.Command{Use: "create <name>", Short: "Platform owner: create a 500 GiB organization workspace", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
 		if err := validateCoderName("workspace", args[0]); err != nil {
 			return err
 		}
-		return runCoder(cmd, dependencies, []string{"create", args[0], "--template", "tcompute-standard", "--use-parameter-defaults", "--yes"})
-	}})
+		if err := validateCoderName("organization admin", organizationAdmin); err != nil {
+			return err
+		}
+		token, err := loadCoderToken(cmd.Context(), dependencies)
+		if err != nil {
+			return err
+		}
+		if dependencies.CoderClient == nil {
+			return errors.New("Coder client is unavailable")
+		}
+		user, err := dependencies.CoderClient.Me(cmd.Context(), token)
+		if err != nil {
+			return err
+		}
+		isOwner := false
+		for _, role := range user.Roles {
+			if role.Name == "owner" {
+				isOwner = true
+				break
+			}
+		}
+		if !isOwner {
+			return errors.New("only the platform administrator can create an organization space")
+		}
+		if err := runCoder(cmd, dependencies, []string{"create", args[0], "--template", "tcompute-standard", "--use-parameter-defaults", "--parameter", "space_kind=organization", "--yes"}); err != nil {
+			return err
+		}
+		return runCoder(cmd, dependencies, []string{"sharing", "add", args[0], "--user", organizationAdmin + ":admin"})
+	}}
+	create.Flags().StringVar(&organizationAdmin, "admin", "", "existing user who administers organization membership")
+	_ = create.MarkFlagRequired("admin")
+	root.AddCommand(create)
 	members := &cobra.Command{Use: "member", Short: "Manage access to a shared workspace"}
 	members.AddCommand(delegatedCoderCommand(dependencies, "add <workspace> <username>", "Grant workspace use access", cobra.ExactArgs(2), func(args []string) ([]string, error) {
 		if err := validateCoderNames(args...); err != nil {

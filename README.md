@@ -32,7 +32,7 @@ tcompute workspace list
 tcompute shell my-space
 
 # 组织共享空间
-tcompute org create shared-lab
+tcompute org create shared-lab --admin alice   # 仅平台管理员
 tcompute org member add shared-lab bob
 tcompute org list
 tcompute shell alice/shared-lab
@@ -52,14 +52,14 @@ tcompute service authenticated shared-lab
 tcompute service public shared-lab   # 明确开放匿名互联网访问
 ```
 
-持久文件位于 `/home/coder`，默认 50 GiB。计算容器停止时可销毁并快速重建，但 home volume 保留。预装 Python、Node.js、Go、Rust、C/C++、PostgreSQL、Redis、Podman/Buildah，并提供 Docker-compatible `docker build`。
+持久文件位于 `/home/coder`：个人空间默认 50 GiB，组织空间 500 GiB。只有平台管理员可创建组织空间并指定首位组织管理员；计算容器停止时可销毁并快速重建，但 home volume 保留。预装 Python、Node.js、Go、Rust、C/C++、PostgreSQL、Redis、Podman/Buildah，并提供 Docker-compatible `docker build`。
 
 把可执行启动器放在 `/home/coder/.tcompute/service`，常驻进程会随工作空间启动恢复；端口 8000 自动获得 HTTPS workspace hostname。成员移除后 CLI 自动重启空间，使撤权立即生效。
 
 ## 安全与资源边界
 
 - Workspace root 映射为宿主非 root UID。
-- 标准限制：4 CPU、8 GiB RAM、2048 pids、50 GiB persistent home；可在模板允许范围内调整 CPU/RAM。
+- 标准限制：4 CPU、8 GiB RAM、2048 pids、8 GiB ephemeral root；个人 persistent home 50 GiB、组织 persistent home 500 GiB。
 - 用户总池上限：30 CPU、48 GiB RAM、700 GiB；宿主保留平台与应急资源。
 - 拒绝宿主、RFC1918/CGNAT、链路本地和云元数据访问；允许公网出站。
 - HTTPS 服务默认 owner 登录；`service public` 才允许匿名访问。

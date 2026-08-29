@@ -20,14 +20,14 @@ Accounts are administrator-created. Use `tcompute login --email <email>` and its
 ```text
 tcompute personal create <name>
 tcompute workspace list
-tcompute org create <name>
+tcompute org create <name> --admin <existing-user>  # platform admin only
 tcompute org list
 tcompute org member add <workspace> <username>
 tcompute shell <workspace>
 tcompute shell <owner>/<shared-workspace>
 ```
 
-The shell is root inside an unprivileged Incus container, not on the AUP host. Python, Node.js, Go, Rust, C/C++, PostgreSQL, Redis, Podman and the Docker-compatible `docker build` command are installed. Persistent files belong under `/home/coder`; stopping recreates compute but retains that 50 GiB volume.
+The shell is root inside an unprivileged Incus container, not on the AUP host. Python, Node.js, Go, Rust, C/C++, PostgreSQL, Redis, Podman and the Docker-compatible `docker build` command are installed. Persistent files belong under `/home/coder`; personal volumes are 50 GiB and platform-created organization volumes are 500 GiB.
 
 ## Files
 

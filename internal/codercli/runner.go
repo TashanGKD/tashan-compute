@@ -81,7 +81,7 @@ func (runner Runner) Sync(ctx context.Context, token string, request SyncRequest
 	if !syncWorkspacePattern.MatchString(request.Workspace) {
 		return errors.New("invalid workspace reference")
 	}
-	if request.LocalPath == "" || strings.ContainsAny(request.LocalPath, "\x00\r\n") {
+	if request.LocalPath == "" || strings.HasPrefix(request.LocalPath, "-") || strings.ContainsAny(request.LocalPath, "\x00\r\n") {
 		return errors.New("local path is required")
 	}
 	remotePath := path.Clean(request.RemotePath)
@@ -116,9 +116,9 @@ func (runner Runner) Sync(ctx context.Context, token string, request SyncRequest
 	remote := "tcompute-sync:/home/coder/" + remotePath
 	switch request.Direction {
 	case "push":
-		rsyncArgs = append(rsyncArgs, request.LocalPath, remote)
+		rsyncArgs = append(rsyncArgs, "--", request.LocalPath, remote)
 	case "pull":
-		rsyncArgs = append(rsyncArgs, remote, request.LocalPath)
+		rsyncArgs = append(rsyncArgs, "--", remote, request.LocalPath)
 	default:
 		return errors.New("sync direction must be push or pull")
 	}

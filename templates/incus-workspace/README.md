@@ -1,12 +1,12 @@
 # Tashan Compute Standard Workspace
 
-This Coder template creates one persistent, unprivileged Ubuntu 24.04 Incus
-container in the dedicated `user-955` project. Stopping a workspace stops the
-container without deleting its 50 GiB root filesystem; deleting the workspace
-deletes the container.
+This template creates an unprivileged Ubuntu 24.04 Incus compute container and
+a separate persistent `/home/coder` volume. Stopping destroys the 8 GiB compute
+container and retains the home volume; starting recreates compute with a fresh
+Coder token. Personal homes are 50 GiB. A 500 GiB organization home is accepted
+only when the workspace owner is the platform account `tashan-admin`.
 
 The image installs Python, Node.js, Go, Rust, C/C++, PostgreSQL, Redis and common
-development tools. The `coder` user has passwordless sudo only inside the
-container. The workspace has no host Docker socket, Incus socket, host path or
-privileged/nested-container mode. A separate template is required for rootless
-container-image builds.
+development tools plus Podman/Buildah exposed through a Docker-compatible
+`docker build` command. The workspace allows nested namespaces but remains
+unprivileged and receives no host Docker socket, Incus socket or host path.

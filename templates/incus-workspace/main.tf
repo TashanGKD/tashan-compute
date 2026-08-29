@@ -97,9 +97,30 @@ data "coder_parameter" "service_visibility" {
   }
 }
 
+data "coder_parameter" "space_kind" {
+  name         = "space_kind"
+  display_name = "Space kind"
+  description  = "Personal spaces are 50 GiB. Organization spaces are 500 GiB and require the platform owner."
+  type         = "string"
+  default      = "personal"
+  mutable      = false
+  order        = 5
+  option {
+    name  = "Personal"
+    value = "personal"
+  }
+  option {
+    name  = "Organization"
+    value = "organization"
+  }
+}
+
 locals {
-  instance_name = substr("tc-${data.coder_workspace_owner.me.name}-${data.coder_workspace.me.name}", 0, 63)
-  home_name     = substr("home-${data.coder_workspace_owner.me.id}-${data.coder_workspace.me.id}", 0, 63)
+  instance_name           = substr("tc-${data.coder_workspace_owner.me.name}-${data.coder_workspace.me.name}", 0, 63)
+  home_name               = substr("home-${data.coder_workspace_owner.me.id}-${data.coder_workspace.me.id}", 0, 63)
+  is_org                  = data.coder_parameter.space_kind.value == "organization"
+  home_size               = local.is_org ? "500GiB" : "50GiB"
+  owner_is_platform_admin = data.coder_workspace_owner.me.name == "tashan-admin"
 }
 
 resource "coder_agent" "main" {
@@ -163,9 +184,15 @@ resource "incus_storage_volume" "home" {
   pool         = "tcompute"
   project      = "user-955"
   content_type = "filesystem"
-  description  = "Persistent home for ${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}"
+  description  = "Persistent ${data.coder_parameter.space_kind.value} home for ${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}"
   config = {
-    size = "50GiB"
+    size = local.home_size
+  }
+  lifecycle {
+    precondition {
+      condition     = !local.is_org || local.owner_is_platform_admin
+      error_message = "Only the platform administrator can create a 500 GiB organization space."
+    }
   }
 }
 
@@ -200,6 +227,16 @@ resource "incus_instance" "workspace" {
       path   = "/home/coder"
       source = incus_storage_volume.home.name
       pool   = incus_storage_volume.home.pool
+    }
+  }
+
+  device {
+    name = "root"
+    type = "disk"
+    properties = {
+      path = "/"
+      pool = "tcompute"
+      size = "8GiB"
     }
   }
 
@@ -308,6 +345,6 @@ resource "coder_metadata" "workspace" {
   }
   item {
     key   = "persistent_home"
-    value = "50 GiB"
+    value = local.home_size
   }
 }

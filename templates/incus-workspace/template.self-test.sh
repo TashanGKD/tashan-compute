@@ -16,8 +16,12 @@ for required in \
   'default      = "owner"' \
   'value = "public"' \
   'subdomain    = true' \
-  'size = "50GiB"' \
+  '"50GiB"' \
+  '500GiB' \
+  'space_kind' \
+  'data.coder_workspace_owner.me.name == "tashan-admin"' \
   'path   = "/home/coder"' \
+  'size = "8GiB"' \
   'ec826a760fb7be23086d5e5c032dab471d147884b3342c75f352c19490bddc10' \
   '"security.privileged"' \
   '"security.nesting"' \

@@ -32,7 +32,7 @@ The restricted project has a 30 CPU / 48 GiB / 700 GiB aggregate ceiling. Host p
 
 ## Workspace and workload evidence
 
-The active template uses prebuilt image fingerprint `ec826a760fb7be23086d5e5c032dab471d147884b3342c75f352c19490bddc10` and a separate 50 GiB persistent `/home/coder` volume.
+The active template uses prebuilt image fingerprint `ec826a760fb7be23086d5e5c032dab471d147884b3342c75f352c19490bddc10`, an 8 GiB ephemeral root, a 50 GiB personal home, or a 500 GiB platform-created organization home. The image build inputs and guarded rebuild scripts live under `images/workspace/` and `deploy/build-workspace-image.sh`.
 
 Verified through public Coder/tcompute connections:
 
@@ -52,6 +52,7 @@ Verified through public Coder/tcompute connections:
 - Bob could not access `alice/alice-personal`.
 - Removing Bob automatically restarted `shared-lab`; Bob's next shell was denied. Bob was then re-added for the final collaborative state.
 - Admin password reset invalidated two independent Bob sessions with HTTP 401.
+- The platform owner created `org-smoke` with Alice as Coder workspace admin; live Incus state showed a 500 GiB organization home and 8 GiB root. Bob's direct attempt to request `space_kind=organization` was rejected during Terraform planning.
 
 ## HTTPS service evidence
 
