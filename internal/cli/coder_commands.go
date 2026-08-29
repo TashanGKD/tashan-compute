@@ -110,10 +110,18 @@ func newCoderShellCommand(dependencies Dependencies) *cobra.Command {
 		coderArgs := []string{"ssh", args[0]}
 		if len(args) > 1 {
 			coderArgs = append(coderArgs, "--")
-			coderArgs = append(coderArgs, args[1:]...)
+			coderArgs = append(coderArgs, quoteRemoteCommand(args[1:]))
 		}
 		return runCoder(cmd, dependencies, coderArgs)
 	}}
+}
+
+func quoteRemoteCommand(args []string) string {
+	quoted := make([]string, 0, len(args))
+	for _, arg := range args {
+		quoted = append(quoted, "'"+strings.ReplaceAll(arg, "'", "'\"'\"'")+"'")
+	}
+	return strings.Join(quoted, " ")
 }
 
 func newCoderPersonalCommand(dependencies Dependencies) *cobra.Command {

@@ -90,7 +90,7 @@ assert_fails_with() {
   fi
 }
 
-version=0.2.0
+version=0.2.1
 platform=darwin-arm64
 valid_release=$(make_fixture "$version" "$platform")
 home=$(new_home valid)

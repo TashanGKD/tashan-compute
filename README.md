@@ -21,7 +21,7 @@ bash scripts/install-cli.sh --install
 tcompute login --email you@tashan.chat
 ```
 
-安装器默认不做任何修改；`--install` 下载带 SHA256 的 v0.2.0 包。每个平台包同时含 `tcompute` 与固定 Coder CLI，不要求用户安装 Go、Node、Docker 或 Tailscale。账号只能由平台管理员创建。
+安装器默认不做任何修改；`--install` 下载带 SHA256 的 v0.2.1 包。每个平台包同时含 `tcompute` 与固定 Coder CLI，不要求用户安装 Go、Node、Docker 或 Tailscale。账号只能由平台管理员创建。
 
 ## CLI 闭环
 
