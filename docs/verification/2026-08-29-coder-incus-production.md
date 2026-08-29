@@ -71,6 +71,21 @@ Verified through public Coder/tcompute connections:
 - Terraform template self-test
 - release builder and fresh installer distribution tests
 
+## Independent fresh-user acceptance
+
+A read-only subagent used only the installed Skill and a new temporary HOME/data/bin tree; it did not use repository source or Tailscale.
+
+- Installed public v0.2.0 from the compute edge, then verified the OS-keyring login, 25-entry capability manifest and Bob identity.
+- Created a unique personal workspace in 19.40 seconds.
+- Public Coder shell, Python, sync dry-run/apply push/pull, persistent marker, stop/start and authorization checks passed.
+- An ordinary `FROM alpine:3.22` Docker build initially reproduced Docker Hub timeouts; after adding the template's DaoCloud mirror it pulled, built and ran in 14.64 seconds.
+- The marker hash remained identical after stop (12.30 seconds) and start (9.56 seconds).
+- Bob could access `alice/shared-lab` but was denied `alice/alice-personal`.
+- The unique test workspace was deleted and confirmed absent.
+- The test exposed quoted-argument loss in `tcompute shell`; v0.2.1 now POSIX-quotes every remote argv element. Live `python3 -c` and injection-shaped arguments passed after the fix.
+
+Public artifacts are available in GitHub Release `v0.2.1` and at `https://compute.tashan.chat/cli/v0.2.1/`. The installed local Skill was refreshed from merged main and reports version `0.2.1`.
+
 ## Known product boundary
 
 Coder OSS does not provide a server-side `must_change_password` flag. The Skill requires temporary-password users to run `tcompute password change` before workspace operations, and administrator resets revoke all existing sessions, but direct Coder Web login cannot yet be hard-blocked until that first change. This remains the principal gap against the stricter account policy.
