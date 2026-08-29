@@ -105,7 +105,7 @@ if [ "${TCOMPUTE_INSTALL_TESTING:-}" = 1 ]; then
   curl_options='-fL'
 else
   platform=$(detect_platform)
-  release_base_url="https://github.com/$repository/releases/download/v$version"
+  release_base_url="https://compute.tashan.chat/cli/v$version"
   curl_options='-fL --proto =https --tlsv1.2'
 fi
 

@@ -38,6 +38,10 @@ grep -Fq 'proxy_set_header Upgrade $http_upgrade;' "$nginx" || {
   echo 'nginx must forward WebSocket upgrades' >&2
   exit 1
 }
+grep -Fq 'alias /srv/tcompute/releases/;' "$nginx" || {
+  echo 'nginx must serve pinned CLI release assets from ECS storage' >&2
+  exit 1
+}
 
 grep -Fq -- '-R 127.0.0.1:13980:127.0.0.1:7080' "$tunnel" || {
   if grep -Fq -- '-R 0.0.0.0:13980:' "$tunnel"; then
