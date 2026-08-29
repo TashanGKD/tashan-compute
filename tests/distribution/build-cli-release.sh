@@ -25,8 +25,10 @@ bash "$builder" --build --output "$test_root/out" --coder-dist "$test_root/coder
 for platform in darwin-arm64 darwin-x64 linux-x64; do
   asset="$test_root/out/tcompute-v0.2.0-$platform.tar.gz"
   [ -f "$asset" ]
-  tar -tzf "$asset" | grep -Fxq "tcompute-v0.2.0-$platform/bin/tcompute"
-  tar -tzf "$asset" | grep -Fxq "tcompute-v0.2.0-$platform/bin/coder"
+  entries="$test_root/entries-$platform.txt"
+  tar -tzf "$asset" >"$entries"
+  grep -Fxq "tcompute-v0.2.0-$platform/bin/tcompute" "$entries"
+  grep -Fxq "tcompute-v0.2.0-$platform/bin/coder" "$entries"
 done
 
 mkdir "$test_root/unpack"
