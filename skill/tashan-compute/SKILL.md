@@ -9,7 +9,7 @@ Use `tcompute` for every user operation. Ordinary users connect through public H
 
 ## Start
 
-1. If `tcompute` is missing, run `scripts/install-cli.sh --check`. Install only after the user requests it: `scripts/install-cli.sh --install`.
+1. If `tcompute` is missing, run `bash scripts/install-cli.sh --check`. Install only after the user requests it: `bash scripts/install-cli.sh --install`.
 2. Run `tcompute <command> --help` before constructing unfamiliar flags.
 3. Inspect supported operations with `tcompute capability list`.
 
