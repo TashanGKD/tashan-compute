@@ -32,7 +32,13 @@ for platform in darwin-arm64 darwin-x64 linux-x64; do
 done
 
 mkdir "$test_root/unpack"
-tar -xzf "$test_root/out/tcompute-v0.2.0-darwin-arm64.tar.gz" -C "$test_root/unpack"
-[ "$($test_root/unpack/tcompute-v0.2.0-darwin-arm64/bin/tcompute --version)" = "0.2.0" ]
+case "$(uname -s)-$(uname -m)" in
+  Darwin-arm64) smoke_platform=darwin-arm64 ;;
+  Darwin-x86_64) smoke_platform=darwin-x64 ;;
+  Linux-x86_64) smoke_platform=linux-x64 ;;
+  *) echo "unsupported release smoke platform: $(uname -s)-$(uname -m)" >&2; exit 1 ;;
+esac
+tar -xzf "$test_root/out/tcompute-v0.2.0-$smoke_platform.tar.gz" -C "$test_root/unpack"
+[ "$($test_root/unpack/tcompute-v0.2.0-$smoke_platform/bin/tcompute --version)" = "0.2.0" ]
 
 echo "build-cli-release distribution test: PASS"
