@@ -1,5 +1,7 @@
 # Space, File, Snapshot, and Secret Implementation Plan
 
+> **Status:** Superseded before implementation by the approved Coder + Incus architecture. Retained only as decision history; do not execute this plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Deliver personal and organization spaces with quota-safe MinIO storage, versioned files, resumable uploads, conflict-safe sync, immutable snapshots and encrypted run-time Secret references through matching API, CLI and Skill capabilities.
