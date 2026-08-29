@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"github.com/TashanGKD/tashan-compute/internal/cli"
-	"github.com/TashanGKD/tashan-compute/internal/client"
+	"github.com/TashanGKD/tashan-compute/internal/codercli"
 	"github.com/TashanGKD/tashan-compute/internal/credentials"
 	"golang.org/x/term"
 )
@@ -28,11 +28,19 @@ func runtimeDependencies() (cli.Dependencies, error) {
 	if len(os.Args) == 1 {
 		return cli.Dependencies{}, nil
 	}
-	apiURL := os.Getenv("TCOMPUTE_API_URL")
-	if apiURL == "" {
-		apiURL = "http://127.0.0.1:8180"
+	coderURL := os.Getenv("TCOMPUTE_CODER_URL")
+	if coderURL == "" {
+		coderURL = "https://compute.tashan.chat"
 	}
-	api, err := client.New(apiURL, http.DefaultClient)
+	coderClient, err := codercli.NewClient(coderURL, http.DefaultClient)
+	if err != nil {
+		return cli.Dependencies{}, err
+	}
+	executable, err := os.Executable()
+	if err != nil {
+		return cli.Dependencies{}, fmt.Errorf("resolve tcompute executable: %w", err)
+	}
+	coderBinary, err := codercli.FindBinary(executable, os.Getenv("TCOMPUTE_CODER_BIN"))
 	if err != nil {
 		return cli.Dependencies{}, err
 	}
@@ -44,11 +52,16 @@ func runtimeDependencies() (cli.Dependencies, error) {
 	case "linux":
 		store = credentials.NewLinuxSecretServiceStore(runner)
 	default:
-		store = credentials.NewMemoryStore()
+		return cli.Dependencies{}, fmt.Errorf("secure credential storage is not implemented for %s", runtime.GOOS)
 	}
+	coderRunner := codercli.Runner{Binary: coderBinary, Executor: codercli.ProcessExecutor{}, BaseURL: coderURL}
 	return cli.Dependencies{
-		LoginClient: api, APIClient: api, CredentialStore: store, Stdin: os.Stdin,
-		IsTerminal: func() bool { return term.IsTerminal(int(os.Stdin.Fd())) },
+		CoderClient:     coderClient,
+		CoderRunner:     coderRunner,
+		CoderSyncer:     coderRunner,
+		CredentialStore: store,
+		Stdin:           os.Stdin,
+		IsTerminal:      func() bool { return term.IsTerminal(int(os.Stdin.Fd())) },
 		ReadPassword: func(prompt string) (string, error) {
 			fmt.Fprint(os.Stderr, prompt)
 			value, err := term.ReadPassword(int(os.Stdin.Fd()))

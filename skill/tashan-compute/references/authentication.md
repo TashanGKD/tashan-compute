@@ -1,7 +1,8 @@
 # Authentication
 
-- Platform administrators create usernames and initial passwords; there is no self-registration.
-- `tcompute auth login` uses a hidden password prompt and stores the resulting device session in the operating-system credential store.
-- An initial-password session can only change its password or log out. After the change, every existing session is revoked and the user logs in again.
-- An administrator password reset revokes every old device session for that account.
-- Installing or modifying the public CLI cannot create a trusted Token. Server signatures, current device state and database roles are authoritative.
+- There is no self-registration. A platform administrator creates an email, username and temporary password.
+- `tcompute login --email <email>` reads the password from a hidden prompt and stores only the Coder session token in macOS Keychain or Linux Secret Service.
+- On a temporary-password handoff, the first action must be `tcompute password change`; after success, log in again. Do not perform workspace operations first.
+- `tcompute admin user reset-password <username>` reads the new password from protected input. Coder revokes all old device sessions when the reset succeeds.
+- One person has one account. Multiple computers create multiple device sessions; do not create device-shaped subaccounts.
+- Installing the public repository, Skill or CLI grants no account, organization membership, server shell or administrator role.
